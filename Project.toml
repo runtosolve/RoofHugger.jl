@@ -1,0 +1,4 @@
+name = "RoofHugger"
+uuid = "81b2e6b6-b7f4-4910-9a11-8266460f9833"
+authors = ["Cris Moen <cris.moen@runtosolve.com>"]
+version = "0.1.0"
