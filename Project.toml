@@ -2,3 +2,8 @@ name = "RoofHugger"
 uuid = "81b2e6b6-b7f4-4910-9a11-8266460f9833"
 authors = ["Cris Moen <cris.moen@runtosolve.com>"]
 version = "0.1.0"
+
+[deps]
+NumericalIntegration = "e7bfaba1-d571-5449-8927-abc22e82249b"
+PurlinLine = "720b0b74-7d22-47cf-9c9b-19f6078eb386"
+StructuresKit = "f6c18a9d-8941-4a0a-88a3-c5fc4dcc4715"
