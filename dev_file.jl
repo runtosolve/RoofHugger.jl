@@ -52,8 +52,9 @@ new_deck_details = ("screw-fastened", 0.0179, 12.0, 0.212, 2.50)
 
 new_deck_material_properties = (29500.0, 0.30, 55.0, 70.0)
 
+purlin_frame_connections = "anti-roll clip"
 
-roof_hugger_purlin_line = RoofHugger.define(design_code, segments, spacing, roof_slope, purlin_cross_section_dimensions, roof_hugger_cross_section_dimensions, roof_hugger_punch_out_dimensions, purlin_material_properties, roof_hugger_material_properties, deck_details, deck_material_properties, new_deck_details, new_deck_material_properties, frame_flange_width, support_locations, bridging_locations)
+roof_hugger_purlin_line = RoofHugger.define(design_code, segments, spacing, roof_slope, purlin_cross_section_dimensions, roof_hugger_cross_section_dimensions, roof_hugger_punch_out_dimensions, purlin_material_properties, roof_hugger_material_properties, deck_details, deck_material_properties, new_deck_details, new_deck_material_properties, frame_flange_width, support_locations, purlin_frame_connections, bridging_locations)
 
 
 roof_hugger_purlin_line.applied_pressure = 0.00000001   #kips/in^2
@@ -64,6 +65,11 @@ roof_hugger_purlin_line.loading_direction = "gravity"
 roof_hugger_purlin_line = RoofHugger.capacity(roof_hugger_purlin_line)
 
 
+roof_hugger_purlin_line.roof_hugger_purlin_net_cross_section_data[1].node_geometry
+
+
+using Plots
+plot(roof_hugger_purlin_line.roof_hugger_purlin_net_cross_section_data[1].node_geometry[:,1], roof_hugger_purlin_line.roof_hugger_purlin_net_cross_section_data[1].node_geometry[:,2], seriestype = :scatter)
 
 
 
