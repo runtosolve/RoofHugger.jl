@@ -757,25 +757,22 @@ function generate_roof_hugger_net_section_purlin_geometry(roof_hugger_purlin_cro
     roof_hugger_purlin_node_geometry = roof_hugger_purlin_cross_section_data.node_geometry[:,1:2]
     roof_hugger_purlin_node_geometry[hole_index[end] + num_purlin_nodes, 2] =  h_purlin + roof_hugger_punch_out_dimensions[2]
 
-    #Make t=0 for all elements in the punchout region.
 
     #These are the nodes within the punchout region.
-    # remove_hole_nodes_index = hole_index[1:(end-1)] .+ num_purlin_nodes
-    # roof_hugger_purlin_node_geometry = roof_hugger_purlin_node_geometry[setdiff(1:end, remove_hole_nodes_index), :]
+    remove_hole_nodes_index = hole_index[1:(end-1)] .+ num_purlin_nodes
+    roof_hugger_purlin_node_geometry = roof_hugger_purlin_node_geometry[setdiff(1:end, remove_hole_nodes_index), :]
 
-    #Update element thickness at punchouts.
+    #Remove elements in punchout region.
     roof_hugger_purlin_element_definitions = roof_hugger_purlin_cross_section_data.element_definitions
-    hole_elements_index = hole_index[1:end] .+ num_purlin_nodes .- 1
+    remove_hole_elements_index = hole_index[1:end-1] .+ num_purlin_nodes .- 1
 
-    roof_hugger_purlin_element_definitions[hole_elements_index, 3] .= 0.0
+    roof_hugger_purlin_element_definitions = roof_hugger_purlin_element_definitions[setdiff(1:end, remove_hole_elements_index), :]
 
-    # roof_hugger_purlin_element_definitions = roof_hugger_purlin_element_definitions[setdiff(1:end, remove_hole_elements_index), :]
+    #Update nodal connectivity.
+    update_index = remove_hole_elements_index[1]
+    num_removed_elements = length(remove_hole_elements_index)
 
-    # #Update nodal connectivity.
-    # update_index = remove_hole_elements_index[1]
-    # num_removed_elements = length(remove_hole_elements_index)
-
-    # roof_hugger_purlin_element_definitions[update_index:end, 1:2] = roof_hugger_purlin_element_definitions[update_index:end, 1:2] .- num_removed_elements
+    roof_hugger_purlin_element_definitions[update_index:end, 1:2] = roof_hugger_purlin_element_definitions[update_index:end, 1:2] .- num_removed_elements
 
     return roof_hugger_purlin_node_geometry, roof_hugger_purlin_element_definitions
 
@@ -872,28 +869,20 @@ function calculate_net_section_local_buckling_properties(roof_hugger_purlin_line
         #Add element material reference to elem matrix.
         elem[:, 5] .= ones(num_cross_section_elements) * 100
                                 
-       #Find the purlin top flange centerline node.
+        #Find the purlin top flange centerline node.
         #lip curve bottom_flange curve web curve top_flange
-        center_top_flange_purlin_node = sum(roof_hugger_purlin_line.purlin_cross_section_data[section_index].n[1:3]) + sum(roof_hugger_purlin_line.purlin_cross_section_data[section_index].n_radius[1:3]) + floor(Int, roof_hugger_purlin_line.purlin_cross_section_data[section_index].n[4]/2) + 1  #This floor command is a little dangerous.
+        center_top_flange_purlin_node =  sum(roof_hugger_purlin_line.purlin_cross_section_data[section_index].n[1:3]) + sum(roof_hugger_purlin_line.purlin_cross_section_data[section_index].n_radius[1:3]) + floor(Int, roof_hugger_purlin_line.purlin_cross_section_data[section_index].n[4]/2) + 1  #This floor command is a little dangerous.
 
-        #Find the RoofHugger top flange centerline node.
-        num_purlin_nodes = size(roof_hugger_purlin_line.purlin_cross_section_data[section_index].node_geometry)[1]
-        center_roof_hugger_flange_node = num_purlin_nodes + sum(roof_hugger_purlin_line.roof_hugger_cross_section_data[section_index].n[1:2]) + sum(roof_hugger_purlin_line.roof_hugger_cross_section_data[section_index].n_radius[1:2]) + floor(Int, roof_hugger_purlin_line.roof_hugger_cross_section_data[section_index].n[3]/2) + 1
-       
+        #Find the RoofHugger top flange centerline nodes.
+        num_roof_hugger_purlin_nodes = size(roof_hugger_purlin_line.roof_hugger_purlin_net_cross_section_data[section_index].node_geometry)[1]
+        center_roof_hugger_flange_node = num_roof_hugger_purlin_nodes -  roof_hugger_purlin_line.roof_hugger_purlin_net_cross_section_data[section_index].n[end] - roof_hugger_purlin_line.roof_hugger_purlin_net_cross_section_data[section_index].n_radius[end] - floor(Int, roof_hugger_purlin_line.roof_hugger_purlin_net_cross_section_data[section_index].n[end-1]/2)
+
         #Set up springs in CUFSM.  There can be translational and rotational springs at the purlin top flange, and at the RoofHugger top flange.
         springs = [1 center_top_flange_purlin_node 0 roof_hugger_purlin_line.bracing_data[i].kx 0 0 roof_hugger_purlin_line.bracing_data[i].kϕ_dist 0 0 0
-                   2 center_roof_hugger_flange_node 0 roof_hugger_purlin_line.new_deck_bracing_data[i].kx 0 0 roof_hugger_purlin_line.new_deck_bracing_data[i].kϕ_dist 0 0 0]
-        
-        #Constrain the RoofHugger bottom flange to the purlin top flange in all dof (x, z, y, and q).
-        roof_hugger_bottom_flange_centerline_node = num_purlin_nodes + floor(Int, roof_hugger_purlin_line.roof_hugger_cross_section_data[section_index].n[1] / 2) + 1
-        
-        #node#e DOFe coeff node#k DOFk
-        constraints = [center_top_flange_purlin_node 1 1.0 roof_hugger_bottom_flange_centerline_node 1
-                       center_top_flange_purlin_node 2 1.0 roof_hugger_bottom_flange_centerline_node 2
-                       center_top_flange_purlin_node 3 1.0 roof_hugger_bottom_flange_centerline_node 3
-                       center_top_flange_purlin_node 4 1.0 roof_hugger_bottom_flange_centerline_node 4]
+        2 center_roof_hugger_flange_node 0 roof_hugger_purlin_line.new_deck_bracing_data[i].kx 0 0 roof_hugger_purlin_line.new_deck_bracing_data[i].kϕ_dist 0 0 0]
 
-        # constraints = 0
+
+        constraints = 0
 
         #Assume here that purlin and RoofHugger have the same elastic modulus.
         E = roof_hugger_purlin_line.inputs.purlin_material_properties[material_index][1]
@@ -919,6 +908,44 @@ function calculate_net_section_local_buckling_properties(roof_hugger_purlin_line
 
         #Assume the buckling half-wavelength is longer than RoofHugger punchout.  This seems reasonable based on wavelength studies where the mininum was around 15 in. for the net section RoofHugger + purlin model.  
         lengths = [L_hole]
+
+        # node_with_stress = CUFSM.stresgen(node,P,Mxx,Mzz,M11,M22,A,xcg,zcg,Ixx,Izz,Ixz,thetap,I11,I22,unsymm)
+
+        # #Now delete the purlin nodes and elements.  CUFSM for sure gives a good answer here for the local buckling net section analysis.  Otherwise with discontinous members (Roof Hugger and purlin) the results were weird and inconsistent, also if t=0 set for the elements in the punchout.
+
+        # num_purlin_nodes = sum(roof_hugger_purlin_line.purlin_cross_section_data[i].n) + sum(roof_hugger_purlin_line.purlin_cross_section_data[i].n_radius) + 1
+
+        # #Remove purlin nodes.
+        # node_with_stress = node_with_stress[num_purlin_nodes + 1: end, :]
+
+        # #Update node numbers.
+        # num_nodes = size(node_with_stress)[1]
+        # node_with_stress[:,1] .= 1:num_nodes
+
+        # #Remove element numbers.
+        # num_purlin_elem = sum(roof_hugger_purlin_line.purlin_cross_section_data[i].n) + sum(roof_hugger_purlin_line.purlin_cross_section_data[i].n_radius)
+        # elem = elem[num_purlin_elem + 1:end, :]
+
+        # #Update element numbers.
+        # num_elem = size(elem)[1]
+        # elem[:, 1] .= 1:num_elem
+        # elem[:, 2] .= 1:num_nodes-1
+        # elem[:, 3] .= 2:num_nodes
+
+        # curve, shapes = CUFSM.strip(prop, node_with_stress, elem, lengths, springs, constraints, neigs)
+
+        # CUFSM_local_xx_net_pos_data = CUFSM.data(prop, node_with_stress, elem, lengths, springs, constraints, neigs, curve, shapes)
+
+        # half_wavelength = [curve[i,1][1] for i=1:length(lengths)]
+        # load_factor = [curve[i,1][2] for i=1:length(lengths)]
+
+        # Mcrℓ_xx_net_pos = minimum(load_factor)
+
+        # min_index = findfirst(x->x==minimum(load_factor), load_factor)    
+
+        # Lcrℓ_xx_net_pos = half_wavelength[min_index]
+
+        ###########
 
         CUFSM_local_xx_net_pos_data, Mcrℓ_xx_net_pos, Lcrℓ_xx_net_pos = PurlinLine.get_elastic_buckling(prop, deepcopy(node), elem, lengths, springs, constraints, neigs, P,Mxx,Mzz,M11,M22,A,xcg,zcg,Ixx,Izz,Ixz,thetap,I11,I22,unsymm)   
 
