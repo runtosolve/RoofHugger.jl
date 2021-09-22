@@ -1,6 +1,5 @@
 using RoofHugger
 
-
 design_code = "AISI S100-16 ASD"
 
 # Define the properties of each purlin segment along the line.
@@ -33,6 +32,8 @@ deck_material_properties = (29500.0, 0.30, 55.0, 70.0)
 frame_flange_width = 24.0
 
 support_locations = [0.0, 25.0*12, 50.0*12]
+
+purlin_frame_connections = "anti-roll clip"
 
 bridging_locations =[0.0, 10.0*12, 50.0*12]
 
