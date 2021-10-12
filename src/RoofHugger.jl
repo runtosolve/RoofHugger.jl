@@ -1935,24 +1935,58 @@ function thin_walled_beam_interface(roof_hugger_purlin_line)
 
 
     #Define purlin line support locations for ThinWalledBeam.  If there are anti-roll clips assume purlin is fixed in rotation at a frame support. If the purlins are connected to the frame just at the purlin bottom flange, assumed the purlin is free to rotate at the support.
+
+
+
+    #If there are anti-roll clips assume purlin is fixed in rotation at a frame support. If the purlins are connected to the frame just at the purlin bottom flange, assumed the purlin is free to rotate at the support.
+
+    #For intermediate bridging, assume lateral displacement and twist are fully restrained.
     
-    num_supports = length(roof_hugger_purlin_line.inputs.support_locations)
+    supports_and_bridging = sort(unique([roof_hugger_purlin_line.inputs.support_locations; roof_hugger_purlin_line.inputs.bridging_locations]))
+
+    num_supports = length(supports_and_bridging)
 
     supports = Vector{Tuple{Float64, String, String, String}}(undef, num_supports)
 
     for i = 1:num_supports
 
-        if roof_hugger_purlin_line.inputs.purlin_frame_connections == "anti-roll clip"
+        if (roof_hugger_purlin_line.inputs.purlin_frame_connections == "anti-roll clip") & (supports_and_bridging[i] in roof_hugger_purlin_line.inputs.support_locations)
             
-            supports[i] = (roof_hugger_purlin_line.inputs.support_locations[i], "fixed", "fixed", "fixed")
+            supports[i] = (supports_and_bridging[i], "fixed", "fixed", "fixed")
         
-        elseif roof_hugger_purlin_line.inputs.purlin_frame_connections == "bottom flange connection"
+        elseif (roof_hugger_purlin_line.inputs.purlin_frame_connections == "bottom flange connection") & (supports_and_bridging[i] in roof_hugger_purlin_line.inputs.support_locations)
 
-            supports[i] = (roof_hugger_purlin_line.inputs.support_locations[i], "fixed", "fixed", "free")
+            supports[i] = (supports_and_bridging[i], "fixed", "fixed", "free")
+
+        elseif supports_and_bridging[i] in roof_hugger_purlin_line.inputs.bridging_locations  #intermediate bridging
+
+            supports[i] = (supports_and_bridging[i], "fixed", "free", "fixed")   #lateral fixed, vertical free, rotation fixed
 
         end
 
     end
+
+
+
+    # #####################################
+    
+    # num_supports = length(roof_hugger_purlin_line.inputs.support_locations)
+
+    # supports = Vector{Tuple{Float64, String, String, String}}(undef, num_supports)
+
+    # for i = 1:num_supports
+
+    #     if roof_hugger_purlin_line.inputs.purlin_frame_connections == "anti-roll clip"
+            
+    #         supports[i] = (roof_hugger_purlin_line.inputs.support_locations[i], "fixed", "fixed", "fixed")
+        
+    #     elseif roof_hugger_purlin_line.inputs.purlin_frame_connections == "bottom flange connection"
+
+    #         supports[i] = (roof_hugger_purlin_line.inputs.support_locations[i], "fixed", "fixed", "free")
+
+    #     end
+
+    # end
 
     #Define purlin line end boundary conditions for ThinWalledBeam.
 
