@@ -21,22 +21,24 @@ begin
 
     using PlutoUI, Images, Dates, CSV, DataFrames, PurlinLine, RoofHugger, StructuresKit
 
-	purlin_data = CSV.read("/Users/crismoen/.julia/dev/RoofHugger/UI/database/Purlins.csv",
+	local_path = "/Users/crismoen/.julia/dev/RoofHugger/UI/"
+
+	purlin_data = CSV.read(local_path * "database/Purlins.csv",
                              DataFrame);
 
-	roof_hugger_data = CSV.read("/Users/crismoen/.julia/dev/RoofHugger/UI/database/Huggers.csv",
+	roof_hugger_data = CSV.read(local_path * "database/Huggers.csv",
                              DataFrame);
 
-	existing_deck_data = CSV.read("/Users/crismoen/.julia/dev/RoofHugger/UI/database/Existing_Deck.csv",
+	existing_deck_data = CSV.read(local_path * "database/Existing_Deck.csv",
                              DataFrame);
 
-	new_deck_data = CSV.read("/Users/crismoen/.julia/dev/RoofHugger/UI/database/New_Deck.csv",
+	new_deck_data = CSV.read(local_path * "database/New_Deck.csv",
                              DataFrame);
 	
 end;
 
 # ╔═╡ 2a2939b5-b0de-4b51-9a14-3fdf5d439b93
-load("/Users/crismoen/.julia/dev/RoofHugger/UI/roof-hugger-logo-2.png")
+load(local_path * "roof-hugger-logo-2.png")
 
 # ╔═╡ c2353bb3-ee8c-4d55-9447-470427c22b06
 @bind project_details TextField((30,5); default="Project details")
@@ -212,8 +214,8 @@ end
 md"**Retrofitted roof system strength = $(round(roof_hugger_purlin_line.applied_pressure*1000*144, digits=1)) psf**"
 
 # ╔═╡ Cell order:
-# ╟─e37326d5-d9c8-4512-960f-82d912c00273
-# ╟─2a2939b5-b0de-4b51-9a14-3fdf5d439b93
+# ╠═e37326d5-d9c8-4512-960f-82d912c00273
+# ╠═2a2939b5-b0de-4b51-9a14-3fdf5d439b93
 # ╟─c2353bb3-ee8c-4d55-9447-470427c22b06
 # ╟─96f90537-0b4d-4d48-927b-01492e3789ef
 # ╟─99299f0c-30ee-4807-a7a2-d4509b4680ab
