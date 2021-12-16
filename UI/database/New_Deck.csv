@@ -1,3 +1,17 @@
 deck_name,thickness,fastener_spacing,fastener_diameter,fastener_shear_strength,clip_height,clip_spacing
-MR-24 24g,0.0239,,,,2.25,24.0
-MR-24 26g,0.0179,,,,2.25,24.0
+PBR 22 gauge,0.0295,12,0.212,2.5,,
+PBR 24 gauge,0.0239,12,0.212,2.5,,
+PBR 26 gauge,0.0179,12,0.212,2.5,,
+M panel 22 gauge,0.0295,12,0.212,2.5,,
+M panel 24 gauge,0.0239,12,0.212,2.5,,
+M panel 26 gauge,0.0179,12,0.212,2.5,,
+Vertical Rib SS 16 22 gauge,0.0295,,,,2.25,16
+Vertical Rib SS 18 22 gauge,0.0295,,,,2.25,18
+Vertical Rib SS 20 22 gauge,0.0295,,,,2.25,20
+Vertical Rib SS 16 24 gauge,0.0239,,,,2.25,16
+Vertical Rib SS 18 24 gauge,0.0239,,,,2.25,18
+Vertical Rib SS 20 24 gauge,0.0239,,,,2.25,20
+Trapezoidal SS 24 22 gauge,0.0295,,,,2.25,24
+Trapezoidal SS 24 24 gauge,0.0239,,,,2.25,24
+MR-24 24g,0.0239,,,,2.25,24
+MR-24 26g,0.0179,,,,2.25,24

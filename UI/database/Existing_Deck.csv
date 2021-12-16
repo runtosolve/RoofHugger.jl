@@ -1,10 +1,12 @@
-deck_name,thickness,fastener_spacing,fastener_diameter,fastener_shear_strength,,tophat_notch_length,tophat_notch_height
-Rdeck 22 ga,0.0295,3.0,0.212,2.5,,2.0,1.5
-Rdeck 24 ga ,0.0239,3.0,0.212,2.5,,2.0,1.5
-Rdeck 26 ga ,0.0179,3.0,0.212,2.5,,2.0,1.5
-SSR Ultra-Dek 24 in. 24 ga ,0.0239,3.0,0.212,2.5,,3.0,3.0
-SSR Ultra-Dek 18 in. 24 ga ,0.0239,3.0,0.212,2.5,,3.0,3.0
-SSR SuperLok-Dek 16 in. 22 ga,0.0295,3.0,0.212,2.5,,3.0,3.0
-SSR SuperLok-Dek 16 in. 24 ga ,0.0239,3.0,0.212,2.5,,3.0,3.0
-SSR SuperLok-Dek 18 in. 22 ga,0.0295,3.0,0.212,2.5,,3.0,3.0
-SSR SuperLok-Dek 18 in. 24 ga ,0.0239,3.0,0.212,2.5,,3.0,3.0
+deck_name,thickness,fastener_spacing,fastener_diameter,fastener_shear_strength
+PBR 22 gauge,0.0295,3,0.212,2.5
+PBR 24 gauge,0.0239,3,0.212,2.5
+PBR 26 gauge,0.0179,3,0.212,2.5
+M panel 22 gauge,0.0295,3,0.212,2.5
+M panel 24 gauge,0.0239,3,0.212,2.5
+M panel 26 gauge,0.0179,3,0.212,2.5
+Vertical Rib SS 22 gauge,0.0295,3,0.212,2.5
+Vertical Rib SS 24 gauge,0.0239,3,0.212,2.5
+Vertical Rib SS 26 gauge,0.0179,3,0.212,2.5
+Trapezoidal SS 22 gauge,0.0295,3,0.212,2.5
+Trapezoidal SS 24 gauge,0.0239,3,0.212,2.5
