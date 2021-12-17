@@ -59,7 +59,7 @@ $(@bind purlin_type_2 Select(["none"; purlin_data[:, 1]]))
 """
 
 # ╔═╡ bafb4c6d-a36e-438d-be55-a29abcf1efc4
-purlin_size_span_assignment = (1, 2, 2, 1)
+purlin_size_span_assignment = (1, 1, 1, 1)
 
 # ╔═╡ 710a97bb-6cd1-457c-a352-23428408de55
 purlin_laps = (2.5, 1.5, 2.5, 1.5, 3.2, 1.7)  #ft
@@ -124,26 +124,98 @@ end
 # ╔═╡ 72eb55da-e2ee-4d0f-a3fe-c8f9d8e40295
 span_segments = define_span_segments(purlin_spans, purlin_laps)
 
-# ╔═╡ d9e0981c-9065-43bd-a943-d28cdb8ea5f3
-function define_lap_segments(purlin_spans, purlin_laps, purlin_type_2)
+# ╔═╡ 93edda7d-d36c-4941-b91f-47e47602195b
+	num_supports = trunc(Int, length(purlin_laps)/2)
 
-	num_lap_segments = length(purlin_laps)
+# ╔═╡ 6d5509c6-3444-4e4a-a19c-73f7706f8b25
+function define_lap_section_types(purlin_size_span_assignment)
 
-	lap_segments = Array{Tuple{Float64, Int64, Int64}, 1}(undef, num_lap_segments)
+	#There are 3 possible combinations of purlin types at a lap: 1-1, 2-2, or 1-2.
+
+	num_laps = length(purlin_size_span_assignment) - 1
+
+	lap_section_types = Array{String}(undef, num_laps)
+
+	for i=1:num_laps
+
+		purlin_span_1 = purlin_size_span_assignment[i]
+		purlin_span_2 = purlin_size_span_assignment[i+1]
+
+		if (purlin_span_1 == purlin_span_2) & (purlin_span_1 == 1)
+
+			lap_section_types[i] = "1-1"
+
+		elseif (purlin_span_1 == purlin_span_2) & (purlin_span_1 == 2)
+
+			lap_section_types[i] = "2-2"
+
+		elseif purlin_span_1 != purlin_span_2
+
+			lap_section_types[i] = "1-2"
+
+		end
+
+	end
+
+	return lap_section_types
+
+end
+		
+
+# ╔═╡ 8656a9f3-8202-412d-88d4-4c1b7ab3b308
+function define_lap_section_index(lap_section_types, purlin_type_2)
+
+	num_lap_sections = length(lap_section_types)
+	
+	num_unique_lap_sections = length(unique(lap_section_types))
+
+	unique_lap_sections = unique(lap_section_types)
+
+	lap_section_index = Array{Int64}(undef, num_lap_sections)
 
 	if purlin_type_2 == "none"
 
-		lap_section_offset = 0
-	
+		type_offset = 1
+
 	else
-	
-		lap_section_offset = 1
-	
+
+		type_offset = 2
+
 	end
 
-	for i = 1:num_lap_segments
+	for i = 1:num_unique_lap_sections
 
-		lap_segments[i] = (purlin_laps[i]*12.0, lap_section_offset + i + 1, 1)
+		index = findall(x->x==unique_lap_sections[i], lap_section_types)
+
+		lap_section_index[index] .= type_offset + i
+
+	end
+
+	return lap_section_index
+
+end
+
+# ╔═╡ 36f389b2-71d2-4038-8d12-a131396098a0
+lap_section_types = define_lap_section_types(purlin_size_span_assignment)
+
+# ╔═╡ a51eafa0-b6aa-4f17-96b0-440b098c2eb7
+lap_section_index = define_lap_section_index(lap_section_types, purlin_type_2)
+
+# ╔═╡ d9e0981c-9065-43bd-a943-d28cdb8ea5f3
+function define_lap_segments(purlin_spans, purlin_laps, purlin_type_2, purlin_size_span_assignment)
+
+	num_interior_supports = trunc(Int, length(purlin_laps)/2)
+
+	lap_segments = Array{Tuple{Float64, Int64, Int64}, 1}(undef, num_interior_supports * 2)
+
+	lap_section_types = define_lap_section_types(purlin_size_span_assignment)
+
+	lap_section_index = define_lap_section_index(lap_section_types, purlin_type_2)
+
+	for i = 1:num_interior_supports
+
+		lap_segments[2*i - 1] = (purlin_laps[2*i - 1]*12.0, lap_section_index[i], 1)
+		lap_segments[2*i] = (purlin_laps[2*i]*12.0, lap_section_index[i], 1)
 
 	end
 
@@ -153,7 +225,7 @@ end
 	
 
 # ╔═╡ f200647f-7551-442a-84ab-89ed340173fe
-lap_segments = define_lap_segments(purlin_spans, purlin_laps, purlin_type_2)
+lap_segments = define_lap_segments(purlin_spans, purlin_laps, purlin_type_2, purlin_size_span_assignment)
 
 # ╔═╡ 7c185202-88fa-45b6-9258-5f0b1927d82f
 function define_purlin_line_segments(span_segments, lap_segments)
@@ -207,31 +279,18 @@ purlin_line_segments = define_purlin_line_segments(span_segments, lap_segments)
 # ╔═╡ 73705e3c-5da6-44c6-80e8-c205b0a6ef19
 # purlin_cross_section_dimensions = [tuple([purlin_data[1, :][i] for i=2:17]...)]
 
-# ╔═╡ f7ba3fa1-6c5e-47fc-b4d3-a2e7d2c59ca6
-purlin_line_segments[1][2]
-
-# ╔═╡ b26de0ff-e9d5-43a0-b2f8-33d703c71247
-purlin_cross_section_dimensions = Vector{Tuple{String, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64}}(undef, 3)
-
-# ╔═╡ f5b73a33-78f8-42f6-8516-ab0a9871f9b3
-typeof(purlin_cross_section_dimensions)
-
-# ╔═╡ cea7e59e-afdb-4e9b-939e-0bbcc85569a5
-sections = [purlin_line_segments[i][2] for i=1:length(purlin_line_segments)]
-
-# ╔═╡ 042afd7d-be49-47ba-89cf-33ca9cdecdd8
-lap_segments
-
 # ╔═╡ d9df5f3d-8d45-4af4-b0ee-a9daab8a75ca
-function define_lap_cross_section_properties(sections, section_index_1, section_index_2, lap_segments, purlin_segments, purlin_data)
+function define_lap_cross_section_dimensions(purlin_cross_section_dimensions, )
 
+	num_interior_supports = trunc(Int, length(lap_segments)/2)
+	
 	num_lap_segments = length(lap_segments)
 
 	num_spans = length(purlin_segments)
 
 	lap_cross_section_dimensions = Vector{Tuple{String, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64}}(undef, 3)
 
-	for i = 1:num_spans
+	for i = 1:num_interior_supports
 
 		if i == 1 #first span
 	
@@ -244,24 +303,38 @@ function define_lap_cross_section_properties(sections, section_index_1, section_
 function define_purlin_cross_section_dimensions(purlin_type_1, purlin_type_2, purlin_line_segments, purlin_data)
 
 	section_index_1 = findfirst(==(purlin_type_1), purlin_data.section_name)
+	num_sections = 1
 
 	if purlin_type_2 != "none"
 
 		section_index_2 = findfirst(==(purlin_type_2), purlin_data.section_name)
+		num_sections = 2
 
 	end
 
-	sections = [purlin_line_segments[i][2] for i=1:length(purlin_line_segments)]
+Vector{Tuple{String, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64}}
+	
+	purlin_cross_section_dimensions = Vector{Tuple{String, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64}}(undef, num_sections)
 
-	num_sections = maximum(sections)
+	purlin_cross_section_dimensions[1] = tuple([purlin_data[section_index_1, :][i] for i=2:17]...)
 	
-	purlin_cross_section_dimensions = Vector{Tuple{String, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64, Float64}}(undef, 3)
+	if purlin_type_2 != "none"
+
+		purlin_cross_section_dimensions[2] = tuple([purlin_data[section_index_2, :][i] for i=2:17]...)
+
+	end
+
+	return purlin_cross_section_dimensions
+
+end
 
 	
-	
-	purlin_cross_section_dimensions = [tuple([purlin_data[section_index, :][i] for i=2:17]...)]
-	
-	
+
+# ╔═╡ 04a62e01-33df-4a88-9a56-674aeb82adde
+typeof([tuple([purlin_data[1, :][i] for i=2:17]...), tuple([purlin_data[2, :][i] for i=2:17]...)])
+
+# ╔═╡ 49c1a77f-edf6-4ec2-826d-3cd7f6541ca2
+purlin_cross_section_dimensions = define_purlin_cross_section_dimensions(purlin_type_1, purlin_type_2, purlin_line_segments, purlin_data)
 
 # ╔═╡ bc141195-cc2e-437d-907c-92ba11e4d55f
 function existing_roof_UI_mapper(purlin_spans, purlin_laps, purlin_spacing, roof_slope, purlin_type, purlin_data, existing_deck_type, existing_deck_data, frame_flange_width, purlin_frame_connection, purlin_type_1, purlin_type_2, purlin_sizes_each_span)
@@ -440,18 +513,20 @@ md"**Retrofitted roof system strength = $(round(roof_hugger_purlin_line.applied_
 # ╟─dd6bbcfe-b781-4bf5-8485-1c4b25380ebc
 # ╠═acee7188-5a10-4e5c-9b35-b46d8d3c59de
 # ╠═72eb55da-e2ee-4d0f-a3fe-c8f9d8e40295
+# ╠═93edda7d-d36c-4941-b91f-47e47602195b
+# ╠═6d5509c6-3444-4e4a-a19c-73f7706f8b25
+# ╠═8656a9f3-8202-412d-88d4-4c1b7ab3b308
+# ╠═36f389b2-71d2-4038-8d12-a131396098a0
+# ╠═a51eafa0-b6aa-4f17-96b0-440b098c2eb7
 # ╠═d9e0981c-9065-43bd-a943-d28cdb8ea5f3
 # ╠═f200647f-7551-442a-84ab-89ed340173fe
 # ╠═7c185202-88fa-45b6-9258-5f0b1927d82f
 # ╠═1fe8972f-6925-4593-8f22-32ae5989808c
 # ╠═73705e3c-5da6-44c6-80e8-c205b0a6ef19
-# ╠═f7ba3fa1-6c5e-47fc-b4d3-a2e7d2c59ca6
-# ╠═f5b73a33-78f8-42f6-8516-ab0a9871f9b3
-# ╠═b26de0ff-e9d5-43a0-b2f8-33d703c71247
-# ╠═cea7e59e-afdb-4e9b-939e-0bbcc85569a5
-# ╠═042afd7d-be49-47ba-89cf-33ca9cdecdd8
 # ╠═d9df5f3d-8d45-4af4-b0ee-a9daab8a75ca
 # ╠═1548882a-528e-4a7a-897e-616f3350bc42
+# ╠═04a62e01-33df-4a88-9a56-674aeb82adde
+# ╠═49c1a77f-edf6-4ec2-826d-3cd7f6541ca2
 # ╠═bc141195-cc2e-437d-907c-92ba11e4d55f
 # ╠═155b41ff-d261-40df-807d-37027d220187
 # ╟─40af7c07-ff81-4617-a220-9db2435247f2
