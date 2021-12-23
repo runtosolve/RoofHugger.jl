@@ -8,6 +8,11 @@ using NumericalIntegration
 
 export define, analysis, capacity, define_roof_hugger_cross_sections, RoofHuggerObject, Inputs
 
+export UI
+include("UI.jl")
+using .UI
+
+
 struct Inputs
 
     design_code::String
