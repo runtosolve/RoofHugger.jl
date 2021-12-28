@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.17.2
+# v0.17.4
 
 using Markdown
 using InteractiveUtils
@@ -139,7 +139,7 @@ md"**Retrofitted roof system downward (gravity) strength = $(round(roof_hugger_p
 # ╟─96f90537-0b4d-4d48-927b-01492e3789ef
 # ╟─99299f0c-30ee-4807-a7a2-d4509b4680ab
 # ╠═5d180e53-27aa-4bb2-9ab1-81cc2737ab3b
-# ╟─1d9b00aa-7f6b-4f7e-9da8-e1f0b1ace647
+# ╠═1d9b00aa-7f6b-4f7e-9da8-e1f0b1ace647
 # ╠═bafb4c6d-a36e-438d-be55-a29abcf1efc4
 # ╠═710a97bb-6cd1-457c-a352-23428408de55
 # ╠═dde7f4c2-2212-4244-a78b-8fe12b6c8d0e
