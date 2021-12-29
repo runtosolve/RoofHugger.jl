@@ -28,7 +28,7 @@ begin
 		purlin_data = CSV.read(raw"database\Purlins.csv",
                              DataFrame);
 
-		top_hat_data = CSV.read(raw"database\Huggers.csv",
+		roof_hugger_data = CSV.read(raw"database\Huggers.csv",
                              DataFrame);
 
 		existing_deck_data = CSV.read(raw"database\Existing_Deck.csv",
@@ -42,7 +42,7 @@ begin
 		purlin_data = CSV.read("database/Purlins.csv",
                              DataFrame);
 
-		top_hat_data = CSV.read("database/Huggers.csv",
+		roof_hugger_data = CSV.read("database/Huggers.csv",
                              DataFrame);
 
 		existing_deck_data = CSV.read("database/Existing_Deck.csv",
