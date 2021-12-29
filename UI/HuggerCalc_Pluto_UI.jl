@@ -21,24 +21,58 @@ begin
 
     using PlutoUI, Images, Dates, CSV, DataFrames, PurlinLine, RoofHugger, StructuresKit
 
-	local_path = "/Users/crismoen/.julia/dev/RoofHugger/UI/"
+    OS = "Mac"
 
-	purlin_data = CSV.read(local_path * "database/Purlins.csv",
+	 if OS == "Windows"
+
+		purlin_data = CSV.read(raw"database\Purlins.csv",
                              DataFrame);
 
-	roof_hugger_data = CSV.read(local_path * "database/Huggers.csv",
+		top_hat_data = CSV.read(raw"database\Huggers.csv",
                              DataFrame);
 
-	existing_deck_data = CSV.read(local_path * "database/Existing_Deck.csv",
+		existing_deck_data = CSV.read(raw"database\Existing_Deck.csv",
                              DataFrame);
 
-	new_deck_data = CSV.read(local_path * "database/New_Deck.csv",
+		new_deck_data = CSV.read(raw"database\New_Deck.csv",
                              DataFrame);
+
+	elseif OS == "Mac"
+
+		purlin_data = CSV.read("database/Purlins.csv",
+                             DataFrame);
+
+		top_hat_data = CSV.read("database/Huggers.csv",
+                             DataFrame);
+
+		existing_deck_data = CSV.read("database/Existing_Deck.csv",
+                             DataFrame);
+
+		new_deck_data = CSV.read("database/New_Deck.csv",
+                             DataFrame);
+
+	end
+
+
+
+	# local_path = "/Users/crismoen/.julia/dev/RoofHugger/UI/"
+
+	# purlin_data = CSV.read(local_path * "database/Purlins.csv",
+    #                          DataFrame);
+
+	# roof_hugger_data = CSV.read(local_path * "database/Huggers.csv",
+    #                          DataFrame);
+
+	# existing_deck_data = CSV.read(local_path * "database/Existing_Deck.csv",
+    #                          DataFrame);
+
+	# new_deck_data = CSV.read(local_path * "database/New_Deck.csv",
+    #                          DataFrame);
 	
 end;
 
 # ╔═╡ 2a2939b5-b0de-4b51-9a14-3fdf5d439b93
-load(local_path * "roof-hugger-logo-2.png")
+load("roof-hugger-logo-2.png")
 
 # ╔═╡ c2353bb3-ee8c-4d55-9447-470427c22b06
 @bind project_details TextField((30,5); default="Project details")
