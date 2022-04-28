@@ -4,6 +4,16 @@ authors = ["Cris Moen <cris.moen@runtosolve.com>"]
 version = "0.1.0"
 
 [deps]
+CUFSM = "82b4978f-06ae-48e0-88e8-a26b4f7a0fa1"
+ConnectionStiffness = "b4c48780-65c6-46b5-87ac-5ca5330b2ba8"
+Geometry = "c515e630-5686-4add-9a32-d2a671ea1e20"
+InternalForces = "0ac833a1-d586-4577-9e6b-83a7c69b6692"
+Interpolations = "a98d9a8b-a2ab-59e6-89dd-64a1c18fca59"
 NumericalIntegration = "e7bfaba1-d571-5449-8927-abc22e82249b"
+Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 PurlinLine = "720b0b74-7d22-47cf-9c9b-19f6078eb386"
-StructuresKit = "f6c18a9d-8941-4a0a-88a3-c5fc4dcc4715"
+S100AISI = "01f7396e-a581-4110-84fa-e8964400bef8"
+ScrewConnections = "5bf228db-695e-4268-9ee9-a0e568bd4ab1"
+SectionProperties = "03320fb2-42b0-43fd-9b66-b95dbaa39193"
+ThinWalledBeam = "1c93ddf5-a21f-4e01-8bde-98213f7f7d54"
+ThinWalledBeamColumn = "79be238d-76c4-453b-a7f7-71368c01feb5"

@@ -1,6 +1,6 @@
 module UI
 
-using PurlinLine
+using PurlinLine, Plots
 
 using ..RoofHugger
 
@@ -366,6 +366,33 @@ function retrofit_UI_mapper(purlin_line, roof_hugger_data, roof_hugger_type, new
 	roof_hugger_purlin_line = RoofHugger.capacity(roof_hugger_purlin_line)
 
 	return roof_hugger_purlin_line
+
+end
+
+function show_multi_branch_cross_section(xcoords, ycoords, element_connectivity, markershape, xlims, ylims)
+
+    num_elem = size(element_connectivity)[1]
+
+    plt = []
+
+    for i = 1:num_elem
+
+        node_i = Int(element_connectivity[i, 1])
+        node_j = Int(element_connectivity[i, 2])
+
+        if i == 1
+
+            plt = plot([xcoords[node_i], xcoords[node_j]], [ycoords[node_i], ycoords[node_j]], size = (600, 600), legend = false, linecolor = :blue, markercolor = :black, markershape = markershape, seriestype = :line, xlims = xlims, ylims = ylims)
+
+        else
+            
+            plot!(plt, [xcoords[node_i], xcoords[node_j]], [ycoords[node_i], ycoords[node_j]], size = (600, 600), legend = false, linecolor = :blue, markercolor = :black, markershape = markershape, seriestype = :line, xlims = xlims, ylims = ylims)
+        
+        end
+
+    end
+
+    return plt
 
 end
 
