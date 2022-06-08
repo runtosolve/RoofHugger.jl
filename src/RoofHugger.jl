@@ -1,6 +1,6 @@
 module RoofHugger
 
-using PurlinLine, CUFSM, SectionProperties, NumericalIntegration, ThinWalledBeam, ThinWalledBeamColumn, S100AISI, ConnectionStiffness
+using PurlinLine, CUFSM, SectionProperties, NumericalIntegration, ThinWalledBeam, ThinWalledBeamColumn, S100AISI, ConnectionStiffness, CrossSection
 
 
 export define, analysis, capacity
@@ -157,26 +157,39 @@ function define_roof_hugger_cross_sections(cross_section_dimensions, n, n_radius
         r3 = cross_section_dimensions[i][12]
 
         #Define straight-line lengths on the top cross-section surface.   
-        ΔL = [b_bottom - t, h - t, b_top, d_top]
-        θ = [α1, α2, α3, α4]
+        L = [b_bottom - t, h - t, b_top, d_top]
+        θ = deg2rad.([α1, α2, α3, α4])
 
         #Note that the outside radius is used at the top flanges, and the inside radius is used for the bottom flange.
         radius = [r1-t, r2, r3]
 
-        closed_or_open = 1
+        # closed_or_open = 1
 
         # n = [4, 6, 4, 4]
         # n_radius = [4, 4, 4]
 
-        roof_hugger_section = SectionProperties.Feature(ΔL, θ, n, radius, n_radius, closed_or_open)
+        # roof_hugger_section = SectionProperties.Feature(ΔL, θ, n, radius, n_radius, closed_or_open)
 
-        #Calculate the out-to-out surface coordinates.
-        xcoords_out, ycoords_out = SectionProperties.get_xy_coordinates(roof_hugger_section)
+        # #Calculate the out-to-out surface coordinates.
+        # xcoords_out, ycoords_out = SectionProperties.get_xy_coordinates(roof_hugger_section)
 
-        #Calculate centerline coordinates.
-        unitnormals = SectionProperties.surface_normals(xcoords_out, ycoords_out, closed_or_open)
-        nodenormals = SectionProperties.avg_node_normals(unitnormals, closed_or_open)
-        xcoords_center, ycoords_center = SectionProperties.xycoords_along_normal(xcoords_out, ycoords_out, nodenormals, -t/2)
+        # #Calculate centerline coordinates.
+        # unitnormals = SectionProperties.surface_normals(xcoords_out, ycoords_out, closed_or_open)
+        # nodenormals = SectionProperties.avg_node_normals(unitnormals, closed_or_open)
+        # xcoords_center, ycoords_center = SectionProperties.xycoords_along_normal(xcoords_out, ycoords_out, nodenormals, -t/2)
+
+
+        cross_section = CrossSection.generate_thin_walled(L, θ, n, radius, n_radius)
+
+        #Get node normals on cross-section
+        unit_node_normals = CrossSection.Tools.calculate_cross_section_unit_node_normals(cross_section)
+        #Get centerline coords
+        centerline = CrossSection.Tools.get_coords_along_node_normals(cross_section, unit_node_normals, t/2)
+          
+        xcoords_center = [centerline[i][1] for i in eachindex(cross_section)]
+        ycoords_center = [centerline[i][2] for i in eachindex(cross_section)]
+
+
 
         #Shift y coordinates so that the bottom face is at y = 0.
         ycoords_center = ycoords_center .- minimum(ycoords_center) .+ t/2
@@ -270,7 +283,7 @@ function define_roof_hugger_purlin_cross_sections(segments, purlin_cross_section
         roof_hugger_purlin_plastic_node_geometry, roof_hugger_purlin_plastic_element_definitions = combine_roof_hugger_purlin_geometry(purlin_cross_section_dimensions[purlin_index], purlin_plastic_cross_section_data[purlin_index], roof_hugger_plastic_cross_section_data[roof_hugger_index])
 
         about_axis = "x"  #The strong axis plastic properties are needed for now.  
-        roof_hugger_purlin_plastic_section_properties = SectionProperties.calculate_plastic_section_properties(roof_hugger_purlin_plastic_node_geometry, roof_hugger_purlin_plastic_element_definitions, about_axis)
+        roof_hugger_purlin_plastic_section_properties = SectionProperties.Lines.calculate_plastic_section_properties(roof_hugger_purlin_plastic_node_geometry, roof_hugger_purlin_plastic_element_definitions, about_axis)
 
         #Add cross section information to data structure.
         roof_hugger_purlin_cross_section_data[i] = PurlinLine.CrossSectionData(n, n_radius, roof_hugger_purlin_node_geometry, roof_hugger_purlin_element_definitions, roof_hugger_purlin_section_properties, roof_hugger_purlin_plastic_section_properties)
@@ -831,7 +844,7 @@ function define_roof_hugger_purlin_net_section(segments, purlin_cross_section_di
         roof_hugger_purlin_plastic_node_geometry, roof_hugger_purlin_plastic_element_definitions = generate_roof_hugger_net_section_purlin_geometry(roof_hugger_purlin_plastic_cross_section_data[i], roof_hugger_plastic_cross_section_data[hugger_section_index], purlin_plastic_cross_section_data[purlin_section_index], purlin_cross_section_dimensions[purlin_section_index], roof_hugger_punch_out_dimensions[hugger_punchout_index])
 
         about_axis = "x"  #The strong axis plastic properties are needed for now.  
-        roof_hugger_purlin_plastic_section_properties = SectionProperties.calculate_plastic_section_properties(roof_hugger_purlin_plastic_node_geometry, roof_hugger_purlin_plastic_element_definitions, about_axis)
+        roof_hugger_purlin_plastic_section_properties = SectionProperties.Lines.calculate_plastic_section_properties(roof_hugger_purlin_plastic_node_geometry, roof_hugger_purlin_plastic_element_definitions, about_axis)
 
         #Add cross section information to data structure.
         cross_section_data[i] = PurlinLine.CrossSectionData(roof_hugger_purlin_cross_section_data[i].n, roof_hugger_purlin_cross_section_data[i].n_radius, roof_hugger_purlin_node_geometry, roof_hugger_purlin_element_definitions, section_properties, roof_hugger_purlin_plastic_section_properties)
@@ -1589,8 +1602,13 @@ function calculate_shear_strength(roof_hugger_purlin_line)
         Fcrv_purlin = S100AISI.v16.g232(E_purlin, μ_purlin, kv_purlin, h_flat_purlin, t_purlin)
         Vcr_purlin = S100AISI.v16.g231(h_flat_purlin, t_purlin, Fcrv_purlin)
 
+        #Calculate shear yield force.
+        Aw, Vy_purlin = S100AISI.v16.g215_6(h_flat_purlin, t_purlin, Fy_purlin)
+
         #Calculate shear buckling strength.
-        Vn_purlin, eVn_purlin = S100AISI.v16.g21(h_flat_purlin, t_purlin, Fy_purlin, Vcr_purlin, roof_hugger_purlin_line.inputs.design_code)
+        # Vn_purlin, eVn_purlin = S100AISI.v16.g21(h_flat_purlin, t_purlin, Fy_purlin, Vcr_purlin, roof_hugger_purlin_line.inputs.design_code)
+        Vn_purlin, eVn_purlin = S100AISI.v16.g21_3(Vcr_purlin, Vy_purlin, roof_hugger_purlin_line.inputs.design_code)
+
 
         #Vn, RoofHugger
 
@@ -1615,9 +1633,13 @@ function calculate_shear_strength(roof_hugger_purlin_line)
         Fcrv_roof_hugger = S100AISI.v16.g232(E_roof_hugger, μ_roof_hugger, kv_roof_hugger, h_flat_roof_hugger, t_roof_hugger)
         Vcr_roof_hugger = S100AISI.v16.g231(h_flat_roof_hugger, t_roof_hugger, Fcrv_roof_hugger)
 
-        #Calculate shear buckling strength for one web of RoofHugger.
-        Vn_roof_hugger, eVn_roof_hugger = S100AISI.v16.g21(h_flat_roof_hugger, t_roof_hugger, Fy_roof_hugger, Vcr_roof_hugger, roof_hugger_purlin_line.inputs.design_code)
+        #Calculate shear yield force.
+        Aw, Vy_roof_hugger = S100AISI.v16.g215_6(h_flat_roof_hugger, t_roof_hugger, Fy_roof_hugger)
 
+        #Calculate shear buckling strength for one web of RoofHugger.
+        # Vn_roof_hugger, eVn_roof_hugger = S100AISI.v16.g21(h_flat_roof_hugger, t_roof_hugger, Fy_roof_hugger, Vcr_roof_hugger, roof_hugger_purlin_line.inputs.design_code)
+        Vn_roof_hugger, eVn_roof_hugger = S100AISI.v16.g21_3(Vcr_roof_hugger, Vy_roof_hugger, roof_hugger_purlin_line.inputs.design_code)
+ 
         Vn = Vn_purlin + Vn_roof_hugger
         eVn = eVn_purlin + eVn_roof_hugger
 
