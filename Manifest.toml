@@ -225,14 +225,6 @@ git-tree-sha1 = "d5b014b216dc891e81fea299638e4c10c657b582"
 uuid = "b152e2b5-7a66-4b01-a709-34e65c35f657"
 version = "0.1.2"
 
-[[deps.ConnectionStiffness]]
-deps = ["CSV", "DataFrames", "Interpolations"]
-git-tree-sha1 = "f47fcd17b5b349e52bf661d574d5ecfed42ad496"
-repo-rev = "main"
-repo-url = "https://github.com/runtosolve/ConnectionStiffness.jl.git"
-uuid = "b4c48780-65c6-46b5-87ac-5ca5330b2ba8"
-version = "0.1.0"
-
 [[deps.ConstructionBase]]
 deps = ["LinearAlgebra"]
 git-tree-sha1 = "f74e9d5388b8620b4cee35d4c5a618dd4dc547f4"

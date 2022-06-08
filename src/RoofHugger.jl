@@ -1,6 +1,6 @@
 module RoofHugger
 
-using PurlinLine, CUFSM, SectionProperties, NumericalIntegration, ThinWalledBeam, ThinWalledBeamColumn, S100AISI, ConnectionStiffness, CrossSection
+using PurlinLine, CUFSM, SectionProperties, NumericalIntegration, ThinWalledBeam, ThinWalledBeamColumn, S100AISI, ScrewConnections, CrossSection
 
 
 export define, analysis, capacity
@@ -370,7 +370,7 @@ function define_new_deck_bracing_properties(roof_hugger_purlin_line)
             CorZ = 1
       
             #Calculate the rotational stiffness provided to each RoofHugger flange by the screw-fastened connection between the deck and the RoofHugger.  It is assumed that the deck flexural stiffness is much higher than the connection stiffness.
-            kϕ = ConnectionStiffness.cfs_rot_screwfastened_k(b_top, c, deck_roof_hugger_fastener_spacing, t_roof_hugger, kp, E_roof_hugger, CorZ)
+            kϕ = ScrewConnections.cfs_rot_screwfastened_k(b_top, c, deck_roof_hugger_fastener_spacing, t_roof_hugger, kp, E_roof_hugger, CorZ)
 
             #Calculate the RoofHugger distortional buckling half-wavelength.
 
@@ -390,7 +390,7 @@ function define_new_deck_bracing_properties(roof_hugger_purlin_line)
             #Approximate the lateral stiffness provided to the top of each RoofHugger flange by the screw-fastened connection between the deck and the RoofHugger.
 
             #Calculate the stiffness of a single screw-fastened connection.
-            Ka, ψ, α, β, Ke = ConnectionStiffness.cfs_trans_screwfastened_k(t_roof_deck, t_roof_hugger, E_roof_deck, E_roof_hugger, Fss, Fu_roof_deck, Fu_roof_hugger, deck_roof_hugger_fastener_diameter)
+            Ka, ψ, α, β, Ke = ScrewConnections.cfs_trans_screwfastened_k(t_roof_deck, t_roof_hugger, E_roof_deck, E_roof_hugger, Fss, Fu_roof_deck, Fu_roof_hugger, deck_roof_hugger_fastener_diameter)
 
             #Convert the discrete stiffness to a distributed stiffness, divide by the fastener spacing.
             kx = Ke / deck_roof_hugger_fastener_spacing
