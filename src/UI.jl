@@ -438,9 +438,9 @@ end
 
 
 
-function plot_roof_hugger_purlin_geometry(t, xcoords_center_purlin, ycoords_center_purlin, roof_slope, xcoords_roof_hugger_purlin_line, ycoords_roof_hugger_purlin_line, xcoords_center_roof_hugger, ycoords_center_roof_hugger)
+function plot_roof_hugger_purlin_geometry(t_purlin, t_hugger, xcoords_center_purlin, ycoords_center_purlin, roof_slope, xcoords_roof_hugger_purlin_line, ycoords_roof_hugger_purlin_line, xcoords_center_roof_hugger, ycoords_center_roof_hugger)
 
-	center_nodes_purlin, out_nodes_purlin, in_nodes_purlin = generate_purlin_geometry(t, xcoords_center_purlin, ycoords_center_purlin, roof_slope)
+	center_nodes_purlin, out_nodes_purlin, in_nodes_purlin = generate_purlin_geometry(t_purlin, xcoords_center_purlin, ycoords_center_purlin, roof_slope)
 
 	plot(center_nodes_purlin[:,1], center_nodes_purlin[:,2], aspect_ratio=:equal, linecolor = :grey, legend=false)
 
@@ -453,7 +453,7 @@ function plot_roof_hugger_purlin_geometry(t, xcoords_center_purlin, ycoords_cent
 	Δy = ycoords_roof_hugger_purlin_line[roof_hugger_bottom_flange_centerline_node]
 	Δz = 0.0
 	
-	center_nodes_roof_hugger, out_nodes_roof_hugger, in_nodes_roof_hugger = generate_roof_hugger_geometry(t, xcoords_center_roof_hugger, ycoords_center_roof_hugger, roof_slope, Δx, Δy, Δz)
+	center_nodes_roof_hugger, out_nodes_roof_hugger, in_nodes_roof_hugger = generate_roof_hugger_geometry(t_hugger, xcoords_center_roof_hugger, ycoords_center_roof_hugger, roof_slope, Δx, Δy, Δz)
 
 	plot!(center_nodes_roof_hugger[:,1], center_nodes_roof_hugger[:,2], aspect_ratio=:equal, linecolor = :grey, legend=false)
 
@@ -464,9 +464,9 @@ function plot_roof_hugger_purlin_geometry(t, xcoords_center_purlin, ycoords_cent
 end	
 
 
-function plot_net_section_roof_hugger_purlin_geometry(t, xcoords_center_purlin, ycoords_center_purlin, xcoords_center_roof_hugger, ycoords_center_roof_hugger, roof_slope, xcoords_center_roof_hugger_purlin, ycoords_center_roof_hugger_purlin, net_roof_hugger_purlin_node_geometry)
+function plot_net_section_roof_hugger_purlin_geometry(t_purlin, t_hugger, xcoords_center_purlin, ycoords_center_purlin, xcoords_center_roof_hugger, ycoords_center_roof_hugger, roof_slope, xcoords_center_roof_hugger_purlin, ycoords_center_roof_hugger_purlin, net_roof_hugger_purlin_node_geometry)
 
-	center_nodes_purlin, out_nodes_purlin, in_nodes_purlin = generate_purlin_geometry(t, xcoords_center_purlin, ycoords_center_purlin, roof_slope)
+	center_nodes_purlin, out_nodes_purlin, in_nodes_purlin = generate_purlin_geometry(t_purlin, xcoords_center_purlin, ycoords_center_purlin, roof_slope)
 
 	plot(center_nodes_purlin[:,1], center_nodes_purlin[:,2], aspect_ratio=:equal, linecolor = :grey, legend=false)
 
@@ -479,7 +479,7 @@ function plot_net_section_roof_hugger_purlin_geometry(t, xcoords_center_purlin, 
 	Δy = ycoords_center_roof_hugger_purlin[roof_hugger_bottom_flange_centerline_node]
 	Δz = 0.0
 	
-	center_nodes_roof_hugger, out_nodes_roof_hugger, in_nodes_roof_hugger = generate_roof_hugger_geometry(t, xcoords_center_roof_hugger, ycoords_center_roof_hugger, roof_slope, Δx, Δy, Δz)
+	center_nodes_roof_hugger, out_nodes_roof_hugger, in_nodes_roof_hugger = generate_roof_hugger_geometry(t_hugger, xcoords_center_roof_hugger, ycoords_center_roof_hugger, roof_slope, Δx, Δy, Δz)
 
 	num_roof_hugger_purlin_net_section_nodes = size(net_roof_hugger_purlin_node_geometry, 1)
 
