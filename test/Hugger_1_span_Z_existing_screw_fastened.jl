@@ -16,9 +16,12 @@ new_deck_data = CSV.read("database/New_Deck.csv",
 DataFrame);
 
 
+
+
+
 purlin_spans = (25.0)
 
-purlin_type_1 = "C6x2.5 1345"
+purlin_type_1 = "Z8x2.5 060"
 purlin_type_2 = "none"
 
 purlin_size_span_assignment = (1)
@@ -52,17 +55,3 @@ purlin_line.failure_location
 purlin_line.failure_limit_state
 purlin_line.applied_pressure*1000*144
 
-
-
-roof_hugger_type = "Model C 1.83 16g"
-
-hugger_window_dimensions = (2.5, 1.625)  #(width, height) in inches
-
-new_deck_type = "PBR 22 gauge"
-
-
-
-roof_hugger_purlin_line = UI.retrofit_UI_mapper(purlin_line, roof_hugger_data, roof_hugger_type, new_deck_type, new_deck_data, hugger_window_dimensions);
-
-
-roof_hugger_purlin_line.applied_pressure*1000*144

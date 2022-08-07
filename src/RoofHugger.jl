@@ -10,7 +10,7 @@ include("UI.jl")
 using .UI
 
 
-struct Inputs
+mutable struct Inputs
 
     design_code::String
     segments::Vector{Tuple{Float64, Float64, Int64, Int64, Int64, Int64, Int64}}
@@ -21,9 +21,9 @@ struct Inputs
     roof_hugger_punch_out_dimensions::Vector{NTuple{2, Float64}}
     purlin_material_properties::Vector{NTuple{4, Float64}}
     roof_hugger_material_properties::Vector{NTuple{4, Float64}}
-    deck_details::Tuple{String, Float64, Float64, Float64, Float64}
+    deck_details::Any
     deck_material_properties::NTuple{4, Float64}
-    new_deck_details::Tuple{String, Float64, Float64, Float64, Float64}
+    new_deck_details::Any
     new_deck_material_properties::NTuple{4, Float64}
     frame_flange_width::Float64
     support_locations::Vector{Float64}
@@ -368,9 +368,13 @@ function define_new_deck_bracing_properties(roof_hugger_purlin_line)
 
             #Apply Cee or Zee binary.   Assume the RoofHugger behaves like a Z for this stiffness calculation.
             CorZ = 1
-      
+
             #Calculate the rotational stiffness provided to each RoofHugger flange by the screw-fastened connection between the deck and the RoofHugger.  It is assumed that the deck flexural stiffness is much higher than the connection stiffness.
-            kϕ = ScrewConnections.cfs_rot_screwfastened_k(b_top, c, deck_roof_hugger_fastener_spacing, t_roof_hugger, kp, E_roof_hugger, CorZ)
+            
+            #Calculate the rotational stiffness provided to the purlin by the screw-fastened connection between the deck and the purlin.  It is assumed that the deck flexural stiffness is much higher than the connection stiffness.
+            rotational_stiffness = ScrewConnections.rotational_stiffness(b_top, c, deck_roof_hugger_fastener_spacing, t_roof_hugger, kp, E_roof_hugger, "Z")  #hard code Z here, assume Hugger behaves like a Z
+       
+            # kϕ = ScrewConnections.cfs_rot_screwfastened_k(b_top, c, deck_roof_hugger_fastener_spacing, t_roof_hugger, kp, E_roof_hugger, CorZ)
 
             #Calculate the RoofHugger distortional buckling half-wavelength.
 
@@ -382,7 +386,7 @@ function define_new_deck_bracing_properties(roof_hugger_purlin_line)
 
             #If Lcrd is longer than the fastener spacing, then the distortional buckling will be restrained by the deck.
             if Lcrd >= Lm
-                kϕ_dist = kϕ
+                kϕ_dist = rotational_stiffness.kϕ
             else
                 kϕ_dist = 0.0
             end
@@ -396,7 +400,7 @@ function define_new_deck_bracing_properties(roof_hugger_purlin_line)
             kx = Ke / deck_roof_hugger_fastener_spacing
 
             #Collect all the outputs.
-            bracing_data[i] = PurlinLine.BracingData(kp, kϕ, kϕ_dist, kx, Lcrd, Lm)
+            bracing_data[i] = PurlinLine.BracingData(kp, rotational_stiffness, rotational_stiffness.kϕ, kϕ_dist, kx, Lcrd, Lm)
 
         end
 
@@ -445,12 +449,14 @@ function define_new_deck_bracing_properties(roof_hugger_purlin_line)
             #Calculate the RoofHugger distortional buckling half-wavelength.
             Lcrd, L = S100AISI.v16.app23334(ho, μ_roof_hugger, t_roof_hugger, Ixf, xof, hxf, Cwf, Ixyf, Iyf, Lm)
 
+            rotational_stiffness = []
+
             #Collect all the outputs.
-            bracing_data[i] = PurlinLine.BracingData(0.0, 0.0, 0.0, 0.0, Lcrd, Lm)
+            bracing_data[i] = PurlinLine.BracingData(0.0, rotational_stiffness, 0.0, 0.0, 0.0, Lcrd, Lm)
 
         end
 
-    elseif roof_hugger_purlin_line.inputs.new_deck_details[1] == "MR-24"  
+    elseif roof_hugger_purlin_line.inputs.new_deck_details[1] == "vertical leg standing seam"  
         
         #There is no deck pullout stiffness needed here.
         kp = 0.0
@@ -459,17 +465,17 @@ function define_new_deck_bracing_properties(roof_hugger_purlin_line)
         standing_seam_clip_spacing = roof_hugger_purlin_line.inputs.new_deck_details[2]
 
         #Define the standing seam roof clip height.
-        standing_seam_clip_height = roof_hugger_purlin_line.inputs.new_deck_details[3]
+        # standing_seam_clip_height = roof_hugger_purlin_line.inputs.new_deck_details[3]
 
         #Define the distance between clips as the distortional discrete bracing length.
         Lm = standing_seam_clip_spacing
 
-        if standing_seam_clip_height == 2.25
+        # if standing_seam_clip_height == 2.25
 
             kϕ_standing_seam = 0.200  #From Seek et al. 2021, short floating clip, not exactly MR-24, kip-in/rad/in, https://www.researchgate.net/publication/349693825_Effective_standoff_in_standing_seam_roof_systems
             kx_standing_seam = 0.002  #From Cronin and Moen (2012), Figure 4.8  kips/in/in, https://vtechworks.lib.vt.edu/bitstream/handle/10919/18711/Flexural%20Capacity%20Prediction%20Method%20for%20an%20Open%20Web%20Joist%20Laterally%20Braced%20by%20a%20Standing%20Seam%20Roof%20System%20R10.pdf?sequence=1&isAllowed=y
         
-        end
+        # end
 
         #Loop over all the Hugger+purlin segments in the line.  
         for i = 1:num_purlin_segments
@@ -514,7 +520,7 @@ function define_new_deck_bracing_properties(roof_hugger_purlin_line)
 
             #If Lcrd is longer than the fastener spacing, then the distortional buckling will be restrained by the deck.
             if Lcrd >= Lm
-                kϕ_dist = kϕ
+                kϕ_dist = rotational_stiffness.kϕ
             else
                 kϕ_dist = 0.0
             end
@@ -522,8 +528,10 @@ function define_new_deck_bracing_properties(roof_hugger_purlin_line)
             #Define standing seam roof lateral stiffness.
             kx = kx_standing_seam
 
+            rotational_stiffness = []
+
             #Collect all the outputs.
-            bracing_data[i] = PurlinLine.BracingData(kp, kϕ, kϕ_dist, kx, Lcrd, Lm)
+            bracing_data[i] = PurlinLine.BracingData(kp, rotational_stiffness, kϕ, kϕ_dist, kx, Lcrd, Lm)
 
         end
 
@@ -534,6 +542,120 @@ function define_new_deck_bracing_properties(roof_hugger_purlin_line)
 end
 
 
+######
+#This is for the existing deck once the Huggers have been attached to the purlins
+function define_existing_deck_bracing_properties(purlin_line)
+
+    num_purlin_segments = size(purlin_line.inputs.segments)[1]
+
+    bracing_data = Array{PurlinLine.BracingData, 1}(undef, num_purlin_segments)
+
+     #Define the deck to purlin screw-fastened connection spacing.
+     deck_purlin_fastener_spacing = purlin_line.inputs.deck_details[3]
+
+     #Define the deck to purlin screw diameter.
+     deck_purlin_fastener_diameter = purlin_line.inputs.deck_details[4]
+
+     #Define the nominal shear strength of the typical screw.
+     Fss = purlin_line.inputs.deck_details[5]
+
+     #Define the roof deck base metal thickness.
+     t_roof_deck = purlin_line.inputs.deck_details[2]
+
+     #Define roof deck steel elastic modulus.
+     E_roof_deck = purlin_line.inputs.deck_material_properties[1]
+
+     #Define roof deck steel ultimate yield stress.
+     Fu_roof_deck = purlin_line.inputs.deck_material_properties[4]
+
+     #Define the distance between fasteners as the distortional discrete bracing length.
+     Lm = deck_purlin_fastener_spacing
+
+     #Loop over all the purlin segments in the line.
+     for i = 1:num_purlin_segments
+
+         #Define the section property index associated with purlin segment i.
+         section_index = purlin_line.inputs.segments[i][3]
+
+         #Define the material property index associated with purlin segment i.
+         material_index = purlin_line.inputs.segments[i][4]
+
+         #Define purlin steel elastic modulus.
+         E_purlin = purlin_line.inputs.material_properties[material_index][1]
+
+         #Define purlin steel Poisson's ratio.
+         μ_purlin = purlin_line.inputs.material_properties[material_index][2]
+
+         #Define purlin steel ultimate stress.
+         Fu_purlin = purlin_line.inputs.material_properties[material_index][4]
+
+         #Define the purlin top flange width.
+         b_top = purlin_line.inputs.cross_section_dimensions[section_index][6]
+
+         #Define purlin base metal thickness.
+         t_purlin = purlin_line.inputs.cross_section_dimensions[section_index][2]
+
+         #Define out-to-out purlin web depth.
+         ho = purlin_line.inputs.cross_section_dimensions[section_index][5]
+
+         #Define purlin top flange lip length.
+         d_top = purlin_line.inputs.cross_section_dimensions[section_index][7]
+
+         #Define purlin top flange lip angle from the horizon, in degrees.
+         θ_top = purlin_line.inputs.cross_section_dimensions[section_index][11] - purlin_line.inputs.cross_section_dimensions[section_index][12]
+
+         #Define the location from the purlin top flange pivot point to the fastener.  Assume the fastener is centered in the flange.
+         c = b_top/2
+
+         #Define the deck fastener pull-through plate stiffness.  Assume the fastener is centered between two panel ribs.
+         kp = PurlinLine.deck_pull_through_fastener_stiffness(purlin_line.inputs.deck_material_properties, b_top, t_roof_deck)
+
+         #Apply Cee or Zee binary.
+         if purlin_line.inputs.cross_section_dimensions[section_index][1] == "Z"
+             CorZ = 1
+         elseif purlin_line.inputs.cross_section_dimensions[section_index][1] == "C"
+             CorZ = 0
+         end
+
+         #Calculate the rotational stiffness provided to the purlin by the screw-fastened connection between the deck and the purlin.  It is assumed that the deck flexural stiffness is much higher than the connection stiffness.
+         rotational_stiffness = ScrewConnections.rotational_stiffness(b_top, c, deck_purlin_fastener_spacing, t_purlin, kp, E_purlin, purlin_line.inputs.cross_section_dimensions[section_index][1])
+
+         #Calculate the purlin distortional buckling half-wavelength.
+
+         #Calculate top flange + lip section properties.
+         Af, Jf, Ixf, Iyf, Ixyf, Cwf, xof,  hxf, hyf, yof = S100AISI.v16.table23131(CorZ, t_purlin, b_top, d_top, θ_top)
+
+         #Calculate the purlin distortional buckling half-wavelength.
+         Lcrd, L = S100AISI.v16.app23334(ho, μ_purlin, t_purlin, Ixf, xof, hxf, Cwf, Ixyf, Iyf, Lm)
+
+         #If Lcrd is longer than the fastener spacing, then the distortional buckling will be restrained by the deck.
+         if Lcrd >= Lm
+             kϕ_dist = rotational_stiffness.kϕ
+         else
+             kϕ_dist = 0.0
+         end
+
+         #Approximate the lateral stiffness provided to the top of the purlin by the screw-fastened connection between the deck and the purlin.
+
+         #Calculate the stiffness of a single screw-fastened connection.
+         Ka, ψ, α, β, Ke = ScrewConnections.cfs_trans_screwfastened_k(t_roof_deck, t_purlin, E_roof_deck, E_purlin, Fss, Fu_roof_deck, Fu_purlin, deck_purlin_fastener_diameter)
+
+         #Convert the discrete stiffness to a distributed stiffness, divide by the fastener spacing.
+         kx = Ke / deck_purlin_fastener_spacing
+
+         #Collect all the outputs.
+         bracing_data[i] = PurlinLine.BracingData(kp, rotational_stiffness, rotational_stiffness.kϕ, kϕ_dist, kx, Lcrd, Lm)
+   
+    end
+
+
+    return bracing_data
+
+end
+
+
+
+######
 
 function calculate_elastic_buckling_properties(roof_hugger_purlin_line)
 
@@ -1761,10 +1883,9 @@ function define(design_code, segments, spacing, roof_slope, purlin_cross_section
     #Define RoofHugger + purlin plastic discretization.
     roof_hugger_purlin_plastic_cross_section_data = define_roof_hugger_purlin_cross_sections(roof_hugger_purlin_line.inputs.segments, roof_hugger_purlin_line.inputs.purlin_cross_section_dimensions, purlin_plastic_cross_section_data, roof_hugger_plastic_cross_section_data, purlin_plastic_cross_section_data, roof_hugger_plastic_cross_section_data)
 
-    #Calculate deck bracing properties.  This is for the purlin to deck.   
-    #Assume for now that adding big screws and the RoofHugger does not change the stiffness properties. 
-    roof_hugger_purlin_line.bracing_data = PurlinLine.define_deck_bracing_properties(purlin_line)
-    purlin_line.bracing_data = PurlinLine.define_deck_bracing_properties(purlin_line)
+    #Calculate deck bracing properties.  This is for the purlin to deck once the Huggers have been attached with closely spaced screws.   
+    roof_hugger_purlin_line.bracing_data = define_existing_deck_bracing_properties(purlin_line)
+    purlin_line.bracing_data = roof_hugger_purlin_line.bracing_data
 
     #Calculate free flange shear flow properties, including bracing stiffness from web and conversion factor from purlin line load to shear flow.
     #Assume shear flow is unchanged with addition of the RoofHugger.
