@@ -1233,9 +1233,9 @@ version = "0.6.33"
 
 [[deps.SciMLBase]]
 deps = ["ArrayInterfaceCore", "CommonSolve", "ConstructionBase", "Distributed", "DocStringExtensions", "IteratorInterfaceExtensions", "LinearAlgebra", "Logging", "Markdown", "RecipesBase", "RecursiveArrayTools", "StaticArraysCore", "Statistics", "Tables"]
-git-tree-sha1 = "3077587613bd4ba73e2acd4df2d1300ef19d8513"
+git-tree-sha1 = "094588d21282f3f2d468a4e495dd9dd5d10c9106"
 uuid = "0bca4576-84f4-4d90-8ffe-ffa030f20462"
-version = "1.47.0"
+version = "1.48.0"
 
 [[deps.Scratch]]
 deps = ["Dates"]
