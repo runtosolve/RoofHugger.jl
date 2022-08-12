@@ -1245,7 +1245,7 @@ version = "1.1.1"
 
 [[deps.ScrewConnections]]
 deps = ["CSV", "DataFrames", "Interpolations", "Parameters"]
-git-tree-sha1 = "40c2f29e319d22b1e54aca6bf0c0d0443c337f94"
+git-tree-sha1 = "a550cb328b2dc086805957dc539dccd2381e43db"
 repo-rev = "main"
 repo-url = "https://github.com/runtosolve/ScrewConnections.git"
 uuid = "5bf228db-695e-4268-9ee9-a0e568bd4ab1"
