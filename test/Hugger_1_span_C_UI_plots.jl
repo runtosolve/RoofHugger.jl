@@ -71,14 +71,25 @@ roof_hugger_purlin_line = UI.retrofit_UI_mapper(purlin_line, roof_hugger_data, r
 roof_hugger_purlin_line.applied_pressure*1000*144
 
 
+####
+
+
+
+
+
+
+
+######
 
 
 UI.plot_purlin_geometry(purlin_line.inputs.cross_section_dimensions[1][2], purlin_line.cross_section_data[1].node_geometry[:,1], purlin_line.cross_section_data[1].node_geometry[:,2], roof_slope)
 
+roof_hugger_purlin_line.inputs.purlin_cross_section_dimensions[1][2]
 
-UI.plot_roof_hugger_purlin_geometry(roof_hugger_purlin_line.inputs.roof_hugger_cross_section_dimensions[1][1], roof_hugger_purlin_line.purlin_cross_section_data[1].node_geometry[:,1], roof_hugger_purlin_line.purlin_cross_section_data[1].node_geometry[:,2], roof_slope, roof_hugger_purlin_line.roof_hugger_purlin_cross_section_data[1].node_geometry[:,1], roof_hugger_purlin_line.roof_hugger_purlin_cross_section_data[1].node_geometry[:,2], roof_hugger_purlin_line.roof_hugger_cross_section_data[1].node_geometry[:,1], roof_hugger_purlin_line.roof_hugger_cross_section_data[1].node_geometry[:,2])
 
-UI.plot_net_section_roof_hugger_purlin_geometry(purlin_line.inputs.cross_section_dimensions[1][2], roof_hugger_purlin_line.purlin_cross_section_data[1].node_geometry[:,1], roof_hugger_purlin_line.purlin_cross_section_data[1].node_geometry[:,2], roof_hugger_purlin_line.roof_hugger_cross_section_data[1].node_geometry[:,1], roof_hugger_purlin_line.roof_hugger_cross_section_data[1].node_geometry[:,2], roof_slope, roof_hugger_purlin_line.roof_hugger_purlin_cross_section_data[1].node_geometry[:,1],  roof_hugger_purlin_line.roof_hugger_purlin_cross_section_data[1].node_geometry[:,2], roof_hugger_purlin_line.roof_hugger_purlin_net_cross_section_data[1].node_geometry)
+UI.plot_roof_hugger_purlin_geometry(roof_hugger_purlin_line.inputs.purlin_cross_section_dimensions[1][2], roof_hugger_purlin_line.inputs.roof_hugger_cross_section_dimensions[1][1], roof_hugger_purlin_line.purlin_cross_section_data[1].node_geometry[:,1], roof_hugger_purlin_line.purlin_cross_section_data[1].node_geometry[:,2], roof_slope, roof_hugger_purlin_line.roof_hugger_purlin_cross_section_data[1].node_geometry[:,1], roof_hugger_purlin_line.roof_hugger_purlin_cross_section_data[1].node_geometry[:,2], roof_hugger_purlin_line.roof_hugger_cross_section_data[1].node_geometry[:,1], roof_hugger_purlin_line.roof_hugger_cross_section_data[1].node_geometry[:,2])
+
+UI.plot_net_section_roof_hugger_purlin_geometry(roof_hugger_purlin_line.inputs.purlin_cross_section_dimensions[1][2], roof_hugger_purlin_line.inputs.roof_hugger_cross_section_dimensions[1][1], roof_hugger_purlin_line.purlin_cross_section_data[1].node_geometry[:,1], roof_hugger_purlin_line.purlin_cross_section_data[1].node_geometry[:,2], roof_hugger_purlin_line.roof_hugger_cross_section_data[1].node_geometry[:,1], roof_hugger_purlin_line.roof_hugger_cross_section_data[1].node_geometry[:,2], roof_slope, roof_hugger_purlin_line.roof_hugger_purlin_cross_section_data[1].node_geometry[:,1],  roof_hugger_purlin_line.roof_hugger_purlin_cross_section_data[1].node_geometry[:,2], roof_hugger_purlin_line.roof_hugger_purlin_net_cross_section_data[1].node_geometry)
 
 
 
