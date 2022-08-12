@@ -59,11 +59,7 @@ purlin_line = UI.existing_roof_UI_mapper(purlin_spans, purlin_laps, purlin_spaci
 
 roof_hugger_type = "Model C 4.5 14g"
 
-hugger_window_dimensions = (2.5, 1.625)  #(width, height) in inches
-
-new_deck_type = "PBR 22 gauge"
-
-
+new_deck_type = "Vertical Rib SS 18 24 gauge"
 
 roof_hugger_purlin_line = UI.retrofit_UI_mapper(purlin_line, roof_hugger_data, roof_hugger_type, new_deck_type, new_deck_data);
 

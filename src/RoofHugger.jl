@@ -524,7 +524,7 @@ function define_new_deck_bracing_properties(roof_hugger_purlin_line)
 
             #If Lcrd is longer than the fastener spacing, then the distortional buckling will be restrained by the deck.
             if Lcrd >= Lm
-                kϕ_dist = rotational_stiffness.kϕ
+                kϕ_dist = kϕ
             else
                 kϕ_dist = 0.0
             end
