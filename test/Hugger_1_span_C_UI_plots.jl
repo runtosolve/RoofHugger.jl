@@ -59,13 +59,13 @@ purlin_line.applied_pressure*1000*144
 
 roof_hugger_type = "Model C 1.83 16g"
 
-hugger_window_dimensions = (2.5, 1.625)  #(width, height) in inches
+# hugger_window_dimensions = (2.5, 1.625)  #(width, height) in inches
 
 new_deck_type = "PBR 22 gauge"
 
 
 
-roof_hugger_purlin_line = UI.retrofit_UI_mapper(purlin_line, roof_hugger_data, roof_hugger_type, new_deck_type, new_deck_data, hugger_window_dimensions);
+roof_hugger_purlin_line = UI.retrofit_UI_mapper(purlin_line, roof_hugger_data, roof_hugger_type, new_deck_type, new_deck_data);
 
 
 roof_hugger_purlin_line.applied_pressure*1000*144

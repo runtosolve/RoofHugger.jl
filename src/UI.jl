@@ -314,7 +314,7 @@ function existing_roof_UI_mapper(purlin_spans, purlin_laps, purlin_spacing, roof
 
 end
 
-function retrofit_UI_mapper(purlin_line, roof_hugger_data, roof_hugger_type, new_deck_type, new_deck_data, hugger_window_dimensions)
+function retrofit_UI_mapper(purlin_line, roof_hugger_data, roof_hugger_type, new_deck_type, new_deck_data)
 
 
     roof_hugger_section_index = findfirst(==(roof_hugger_type), roof_hugger_data.section_name)
@@ -324,8 +324,11 @@ function retrofit_UI_mapper(purlin_line, roof_hugger_data, roof_hugger_type, new
     # Define the Roof Hugger material properties.
     roof_hugger_material_properties = [(29500.0, 0.30, 55.0, 70.0)] #E, ν, Fy, Fu
 
-    # Define the Roof Hugger punchout dimensions.  
-    roof_hugger_punch_out_dimensions = [hugger_window_dimensions] #length, height
+    # Define the Roof Hugger punchout dimensions.
+	roof_hugger_punch_out_dimensions = [(roof_hugger_data[roof_hugger_section_index, :punchout_width], roof_hugger_data[roof_hugger_section_index, :punchout_height])]
+
+	
+    # roof_hugger_punch_out_dimensions = [hugger_window_dimensions] #length, height
 
     #Define the new deck details.
 
@@ -361,8 +364,11 @@ function retrofit_UI_mapper(purlin_line, roof_hugger_data, roof_hugger_type, new
 
     end
 
-    # Assemble the purlin line model, now with the addition of Hugger Framing.
 
+	#Roof Hugger is attached with closely spaced screws to existing deck so update existing deck details.
+	purlin_line.inputs.deck_details = ("screw-fastened", purlin_line.inputs.deck_details[2], 3.0, purlin_line.inputs.deck_details[4], purlin_line.inputs.deck_details[5])
+
+    # Assemble the purlin line model, now with the addition of Hugger Framing.
     roof_hugger_purlin_line = RoofHugger.define(purlin_line.inputs.design_code, hugger_purlin_segments, purlin_line.inputs.spacing, purlin_line.inputs.roof_slope, purlin_line.inputs.cross_section_dimensions, roof_hugger_cross_section_dimensions, roof_hugger_punch_out_dimensions, purlin_line.inputs.material_properties, roof_hugger_material_properties, purlin_line.inputs.deck_details, purlin_line.inputs.deck_material_properties, new_roof_panel_details, new_roof_panel_material_properties, purlin_line.inputs.frame_flange_width, purlin_line.inputs.support_locations, purlin_line.inputs.purlin_frame_connections, purlin_line.inputs.bridging_locations)
 
 

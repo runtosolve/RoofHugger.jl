@@ -394,13 +394,15 @@ function define_new_deck_bracing_properties(roof_hugger_purlin_line)
             #Approximate the lateral stiffness provided to the top of each RoofHugger flange by the screw-fastened connection between the deck and the RoofHugger.
 
             #Calculate the stiffness of a single screw-fastened connection.
-            Ka, ψ, α, β, Ke = ScrewConnections.cfs_trans_screwfastened_k(t_roof_deck, t_roof_hugger, E_roof_deck, E_roof_hugger, Fss, Fu_roof_deck, Fu_roof_hugger, deck_roof_hugger_fastener_diameter)
+            α = 0.27  #for steel-to-steel, monotonic from Tao and Moen 2016 Table 8
+            β = - 0.69  
+            shear_stiffness = ScrewConnections.shear_stiffness(t_roof_deck, t_roof_hugger, E_roof_deck, E_roof_hugger, Fss, Fu_roof_deck, Fu_roof_hugger, deck_roof_hugger_fastener_diameter, α, β)
 
             #Convert the discrete stiffness to a distributed stiffness, divide by the fastener spacing.
-            kx = Ke / deck_roof_hugger_fastener_spacing
+            kx = shear_stiffness.Ke / deck_roof_hugger_fastener_spacing
 
             #Collect all the outputs.
-            bracing_data[i] = PurlinLine.BracingData(kp, rotational_stiffness, rotational_stiffness.kϕ, kϕ_dist, kx, Lcrd, Lm)
+            bracing_data[i] = PurlinLine.BracingData(kp, rotational_stiffness, rotational_stiffness.kϕ, kϕ_dist, shear_stiffness, kx, Lcrd, Lm)
 
         end
 
@@ -451,8 +453,10 @@ function define_new_deck_bracing_properties(roof_hugger_purlin_line)
 
             rotational_stiffness = []
 
+            shear_stiffness = []
+
             #Collect all the outputs.
-            bracing_data[i] = PurlinLine.BracingData(0.0, rotational_stiffness, 0.0, 0.0, 0.0, Lcrd, Lm)
+            bracing_data[i] = PurlinLine.BracingData(0.0, rotational_stiffness, 0.0, 0.0, shear_stiffness, 0.0, Lcrd, Lm)
 
         end
 
@@ -530,8 +534,10 @@ function define_new_deck_bracing_properties(roof_hugger_purlin_line)
 
             rotational_stiffness = []
 
+            shear_stiffness = []
+
             #Collect all the outputs.
-            bracing_data[i] = PurlinLine.BracingData(kp, rotational_stiffness, kϕ, kϕ_dist, kx, Lcrd, Lm)
+            bracing_data[i] = PurlinLine.BracingData(kp, rotational_stiffness, kϕ, kϕ_dist, shear_stiffness, kx, Lcrd, Lm)
 
         end
 
@@ -637,15 +643,18 @@ function define_existing_deck_bracing_properties(purlin_line)
 
          #Approximate the lateral stiffness provided to the top of the purlin by the screw-fastened connection between the deck and the purlin.
 
-         #Calculate the stiffness of a single screw-fastened connection.
-         Ka, ψ, α, β, Ke = ScrewConnections.cfs_trans_screwfastened_k(t_roof_deck, t_purlin, E_roof_deck, E_purlin, Fss, Fu_roof_deck, Fu_purlin, deck_purlin_fastener_diameter)
+        #Calculate the stiffness of a single screw-fastened connection.
+        α = 0.27  #for steel-to-steel, monotonic from Tao and Moen 2016 Table 8
+        β = - 0.69  
+        shear_stiffness = ScrewConnections.shear_stiffness(t_roof_deck, t_purlin, E_roof_deck, E_purlin, Fss, Fu_roof_deck, Fu_purlin, deck_purlin_fastener_diameter, α, β)
 
-         #Convert the discrete stiffness to a distributed stiffness, divide by the fastener spacing.
-         kx = Ke / deck_purlin_fastener_spacing
+        #Convert the discrete stiffness to a distributed stiffness, divide by the fastener spacing.
+        kx = shear_stiffness.Ke / deck_purlin_fastener_spacing
 
-         #Collect all the outputs.
-         bracing_data[i] = PurlinLine.BracingData(kp, rotational_stiffness, rotational_stiffness.kϕ, kϕ_dist, kx, Lcrd, Lm)
-   
+        #Collect all the outputs.
+        bracing_data[i] = PurlinLine.BracingData(kp, rotational_stiffness, rotational_stiffness.kϕ, kϕ_dist, shear_stiffness, kx, Lcrd, Lm)
+
+
     end
 
 
@@ -1725,7 +1734,7 @@ function calculate_shear_strength(roof_hugger_purlin_line)
         Vcr_purlin = S100AISI.v16.g231(h_flat_purlin, t_purlin, Fcrv_purlin)
 
         #Calculate shear yield force.
-        Aw, Vy_purlin = S100AISI.v16.g215_6(h_flat_purlin, t_purlin, Fy_purlin)
+        Aw_purlin, Vy_purlin = S100AISI.v16.g215_6(h_flat_purlin, t_purlin, Fy_purlin)
 
         #Calculate shear buckling strength.
         # Vn_purlin, eVn_purlin = S100AISI.v16.g21(h_flat_purlin, t_purlin, Fy_purlin, Vcr_purlin, roof_hugger_purlin_line.inputs.design_code)
@@ -1756,7 +1765,7 @@ function calculate_shear_strength(roof_hugger_purlin_line)
         Vcr_roof_hugger = S100AISI.v16.g231(h_flat_roof_hugger, t_roof_hugger, Fcrv_roof_hugger)
 
         #Calculate shear yield force.
-        Aw, Vy_roof_hugger = S100AISI.v16.g215_6(h_flat_roof_hugger, t_roof_hugger, Fy_roof_hugger)
+        Aw_roof_hugger, Vy_roof_hugger = S100AISI.v16.g215_6(h_flat_roof_hugger, t_roof_hugger, Fy_roof_hugger)
 
         #Calculate shear buckling strength for one web of RoofHugger.
         # Vn_roof_hugger, eVn_roof_hugger = S100AISI.v16.g21(h_flat_roof_hugger, t_roof_hugger, Fy_roof_hugger, Vcr_roof_hugger, roof_hugger_purlin_line.inputs.design_code)
@@ -1765,9 +1774,10 @@ function calculate_shear_strength(roof_hugger_purlin_line)
         Vn = Vn_purlin + Vn_roof_hugger
         eVn = eVn_purlin + eVn_roof_hugger
 
-        shear_strength_purlin[i] = PurlinLine.ShearStrengthData(h_flat_purlin, kv_purlin, Fcrv_purlin, Vcr_purlin, Vn_purlin, eVn_purlin)
-        shear_strength_roof_hugger[i] = PurlinLine.ShearStrengthData(h_flat_roof_hugger, kv_roof_hugger, Fcrv_roof_hugger, Vcr_roof_hugger, Vn_roof_hugger, eVn_roof_hugger)
-        shear_strength[i] = PurlinLine.ShearStrengthData(0.0, 0.0, 0.0, 0.0, Vn, eVn)
+
+        shear_strength_purlin[i] = PurlinLine.ShearStrengthData(h_flat_purlin, Aw_purlin, Fcrv_purlin, kv_purlin, Vcr_purlin, Vy_purlin, Vn_purlin, eVn_purlin)
+        shear_strength_roof_hugger[i] = PurlinLine.ShearStrengthData(h_flat_roof_hugger, Aw_roof_hugger, Fcrv_roof_hugger, kv_roof_hugger,  Vcr_roof_hugger, Vy_roof_hugger, Vn_roof_hugger, eVn_roof_hugger)
+        shear_strength[i] = PurlinLine.ShearStrengthData(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Vn, eVn)
     
 
     end
