@@ -92,9 +92,9 @@ version = "0.16.20"
 
 [[deps.BlockBandedMatrices]]
 deps = ["ArrayLayouts", "BandedMatrices", "BlockArrays", "FillArrays", "LinearAlgebra", "MatrixFactorizations", "SparseArrays", "Statistics"]
-git-tree-sha1 = "85c30bf983cb20748f126c235f0696dff8a83612"
+git-tree-sha1 = "122d3598423fbf23e70d6a3d2fe639acab152441"
 uuid = "ffab5731-97b5-5995-9138-79e8c1846df0"
-version = "0.11.7"
+version = "0.11.8"
 
 [[deps.Bzip2_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
