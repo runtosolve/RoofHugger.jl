@@ -91,6 +91,8 @@ mutable struct RoofHuggerObject
 
     distortional_flexural_strength_xx::Array{PurlinLine.DistortionalFlexuralStrengthData}
 
+    torsion_strength_purlin::Array{PurlinLine.TorsionStrengthData}
+    torsion_strength_roof_hugger::Array{PurlinLine.TorsionStrengthData}
     torsion_strength::Array{PurlinLine.TorsionStrengthData}
 
     shear_strength_purlin::Array{PurlinLine.ShearStrengthData}
@@ -1635,6 +1637,8 @@ function calculate_torsion_strength(roof_hugger_purlin_line)
     num_purlin_segments = size(roof_hugger_purlin_line.inputs.segments)[1]
 
     #Initialize a vector that will hold all the outputs.
+    torsion_strength_purlin = Array{PurlinLine.TorsionStrengthData, 1}(undef, num_purlin_segments)
+    torsion_strength_roof_hugger = Array{PurlinLine.TorsionStrengthData, 1}(undef, num_purlin_segments)
     torsion_strength = Array{PurlinLine.TorsionStrengthData, 1}(undef, num_purlin_segments)
     
     # if roof_hugger_purlin_line.inputs.design_code == "AISI S100-16 ASD"
@@ -1654,22 +1658,36 @@ function calculate_torsion_strength(roof_hugger_purlin_line)
         purlin_material_index = roof_hugger_purlin_line.inputs.segments[i][5]
         hugger_material_index = roof_hugger_purlin_line.inputs.segments[i][6]
         
-        Cw = roof_hugger_purlin_line.roof_hugger_purlin_cross_section_data[i].section_properties.Cw
+        Cw_purlin = roof_hugger_purlin_line.purlin_cross_section_data[i].section_properties.Cw
+        Cw_roof_hugger = roof_hugger_purlin_line.roof_hugger_cross_section_data[i].section_properties.Cw
 
         #This is the maximum magnitude of the warping stress function.  
-        Wn = maximum(abs.(roof_hugger_purlin_line.roof_hugger_purlin_cross_section_data[i].section_properties.wn))
+        Wn_purlin = maximum(abs.(roof_hugger_purlin_line.purlin_cross_section_data[i].section_properties.wn))
+        Wn_roof_hugger = maximum(abs.(roof_hugger_purlin_line.roof_hugger_cross_section_data[i].section_properties.wn))
 
         Fy_purlin = roof_hugger_purlin_line.inputs.purlin_material_properties[purlin_material_index][3]
         Fy_roof_hugger = roof_hugger_purlin_line.inputs.roof_hugger_material_properties[hugger_material_index][3]
-        Fy = minimum([Fy_purlin, Fy_roof_hugger])  #Maximum warping stress will be in the top right RoofHugger flange or the bottom purlin flange lip, so use the minimum yield stress here.
+        
+        Bn_purlin, eBn_purlin = S100AISI.v24.h411(Cw_purlin, Fy_purlin, Wn_purlin, roof_hugger_purlin_line.inputs.design_code)
+        
+        Bn_roof_hugger, eBn_roof_hugger= S100AISI.v24.h411(Cw_roof_hugger, Fy_roof_hugger, Wn_roof_hugger, roof_hugger_purlin_line.inputs.design_code)
+        
+        Bn = Bn_purlin +  Bn_roof_hugger
+        eBn = eBn_purlin +  eBn_roof_hugger
 
-        Bn, eBn = S100AISI.v24.h411(Cw, Fy, Wn, roof_hugger_purlin_line.inputs.design_code)
+        Wn = 0.0   #not needed, sum Bn_purlin and Bn_hugger
 
+        # Fy = minimum([Fy_purlin, Fy_roof_hugger])  #Maximum warping stress will be in the top right RoofHugger flange or the bottom purlin flange lip, so use the minimum yield stress here.
+
+        # Bn, eBn = S100AISI.v24.h411(Cw, Fy, Wn, roof_hugger_purlin_line.inputs.design_code)
+
+        torsion_strength_purlin[i] = PurlinLine.TorsionStrengthData(Wn_purlin, Bn_purlin, eBn_purlin)
+        torsion_strength_roof_hugger[i] = PurlinLine.TorsionStrengthData(Wn_roof_hugger, Bn_roof_hugger, eBn_roof_hugger)
         torsion_strength[i] = PurlinLine.TorsionStrengthData(Wn, Bn, eBn)
 
     end
 
-    return torsion_strength
+    return torsion_strength_purlin, torsion_strength_roof_hugger, torsion_strength
 
 end
 
@@ -1928,7 +1946,7 @@ function define(design_code, segments, spacing, roof_slope, purlin_cross_section
     roof_hugger_purlin_line.distortional_flexural_strength_xx = calculate_distortional_flexural_strength(roof_hugger_purlin_line)
 
     #Calculate torsion strength for each purlin line segment.
-    roof_hugger_purlin_line.torsion_strength = calculate_torsion_strength(roof_hugger_purlin_line)
+    roof_hugger_purlin_line.torsion_strength_purlin, roof_hugger_purlin_line.torsion_strength_roof_hugger, roof_hugger_purlin_line.torsion_strength = calculate_torsion_strength(roof_hugger_purlin_line)
 
     #Calculate shear strength for each purlin line segment.
     roof_hugger_purlin_line.shear_strength_purlin, roof_hugger_purlin_line.shear_strength_roof_hugger, roof_hugger_purlin_line.shear_strength = calculate_shear_strength(roof_hugger_purlin_line)
