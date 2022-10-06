@@ -57,7 +57,7 @@ purlin_line = UI.existing_roof_UI_mapper(purlin_spans, purlin_laps, purlin_spaci
 
 
 
-roof_hugger_type = "Model C 4.5 14g"
+roof_hugger_type = "Model C 4.5 16g"
 
 new_deck_type = "Vertical Rib SS 18 24 gauge"
 

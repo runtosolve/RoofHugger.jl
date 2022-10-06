@@ -72,3 +72,6 @@ roof_hugger_purlin_line.applied_pressure*1000*144
 
 roof_hugger_purlin_line.model.inputs.kx
 roof_hugger_purlin_line.model.inputs.kϕ
+
+roof_hugger_purlin_line.torsion_strength_purlin[1]
+roof_hugger_purlin_line.torsion_strength_roof_hugger[1]

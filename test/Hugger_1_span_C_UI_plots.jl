@@ -65,7 +65,7 @@ new_deck_type = "PBR 22 gauge"
 
 
 
-roof_hugger_purlin_line = UI.retrofit_UI_mapper(purlin_line, roof_hugger_data, roof_hugger_type, new_deck_type, new_deck_data);
+roof_hugger_purlin_line = RoofHugger.UI.retrofit_UI_mapper(purlin_line, roof_hugger_data, roof_hugger_type, new_deck_type, new_deck_data);
 
 
 roof_hugger_purlin_line.applied_pressure*1000*144
