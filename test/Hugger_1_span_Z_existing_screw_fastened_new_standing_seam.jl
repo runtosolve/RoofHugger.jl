@@ -1,6 +1,6 @@
-using CSV, DataFrames, RoofHugger, Plots
+# using CSV, DataFrames, RoofHugger, Plots
 
-
+using RoofHugger, CSV, DataFrames, Plots
 
 
 purlin_data = CSV.read("database/Purlins.csv",
@@ -21,14 +21,14 @@ DataFrame);
 
 purlin_spans = (25.0)
 
-purlin_type_1 = "C8x2.5 060"
+purlin_type_1 = "Z8x2.5 060"
 purlin_type_2 = "none"
 
 purlin_size_span_assignment = (1)
 
 purlin_laps = ()
 
-purlin_spacing = 4.0
+purlin_spacing = 5.0
 
 frame_flange_width = 10.0 
 
@@ -51,9 +51,9 @@ purlin_line = UI.existing_roof_UI_mapper(purlin_spans, purlin_laps, purlin_spaci
 # plot(purlin_line.model.z, purlin_line.internal_forces.T, markershape = :o)
 # plot(purlin_line.model.z, purlin_line.internal_forces.Vyy, markershape = :o)
 
-# purlin_line.failure_location
-# purlin_line.failure_limit_state
-# purlin_line.applied_pressure*1000*144
+purlin_line.failure_location
+purlin_line.failure_limit_state
+purlin_line.applied_pressure*1000*144
 
 
 
@@ -66,5 +66,74 @@ roof_hugger_purlin_line = UI.retrofit_UI_mapper(purlin_line, roof_hugger_data, r
 
 roof_hugger_purlin_line.applied_pressure*1000*144
 
-roof_hugger_purlin_line.model.inputs.kx
-roof_hugger_purlin_line.model.inputs.kϕ
+roof_hugger_purlin_line.failure_limit_state
+
+flexure_torsion_demand_to_capacity::PurlinLine.FlexureTorsion_DemandToCapacity_Data
+biaxial_bending_demand_to_capacity::PurlinLine.BiaxialBending_DemandToCapacity_Data
+distortional_demand_to_capacity::Array{Float64}
+flexure_shear_demand_to_capacity::Array{Float64}
+
+
+struct BiaxialBending_DemandToCapacity_Data
+    
+    action_P::Array{Float64}
+    action_Mxx::Array{Float64}
+    action_Myy::Array{Float64}
+    interaction::Array{Float64}
+    demand_to_capacity::Array{Float64}
+
+end
+
+
+plot(roof_hugger_purlin_line.model.inputs.z, roof_hugger_purlin_line.biaxial_bending_demand_to_capacity.action_Mxx, markershape = :o)
+plot(roof_hugger_purlin_line.model.inputs.z, roof_hugger_purlin_line.biaxial_bending_demand_to_capacity.action_Myy, markershape = :o)
+
+
+
+plot(roof_hugger_purlin_line.model.inputs.z, roof_hugger_purlin_line.flexure_shear_demand_to_capacity, markershape = :o)
+plot!(roof_hugger_purlin_line.model.inputs.z, roof_hugger_purlin_line.distortional_demand_to_capacity, markershape = :o)
+
+
+roof_hugger_purlin_line.local_global_flexural_strength_xx
+
+roof_hugger_purlin_line.yielding_flexural_strength_xx_net
+
+roof_hugger_purlin_line.yielding_flexural_strength_xx
+
+
+roof_hugger_purlin_line.distortional_flexural_strength_xx
+
+Mne::Float64
+Mnℓ_pos::Float64
+Mnℓ_neg::Float64
+eMnℓ_pos::Float64
+eMnℓ_neg::Float64
+
+
+
+
+roof_hugger_purlin_line.local_global_flexural_strength_xx_no_hole
+
+
+roof_hugger_purlin_line.local_global_flexural_strength_xx_hole
+
+
+plot(roof_hugger_purlin_line.model.inputs.z, roof_hugger_purlin_line.Β_distortional_gradient_factor, markershape = :o)
+Β_distortional_gradient_factor
+
+
+plot(roof_hugger_purlin_line.model.inputs.z, roof_hugger_purlin_line.internal_forces.Mxx, markershape = :o)
+
+plot(roof_hugger_purlin_line.model.inputs.z, roof_hugger_purlin_line.expected_strengths.eMnd_xx, markershape = :o)
+
+
+minimum(roof_hugger_purlin_line.expected_strengths.eMnd_xx)
+
+
+eMnd_xx
+
+# plot(purlin_line.model.z, purlin_line.internal_forces.Mxx, markershape = :o)
+# plot(purlin_line.model.z, purlin_line.internal_forces.Myy, markershape = :o)
+
+# roof_hugger_purlin_line.model.inputs.kx
+# roof_hugger_purlin_line.model.inputs.kϕ
