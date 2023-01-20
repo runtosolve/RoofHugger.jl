@@ -423,15 +423,15 @@ function generate_purlin_geometry(t, xcoords_center, ycoords_center, roof_slope)
 
     cross_section = [[xcoords_center[i], ycoords_center[i]] for i in eachindex(xcoords_center)]
 
-    unit_node_normals = CrossSection.Tools.calculate_cross_section_unit_node_normals(cross_section)
+    unit_node_normals = CrossSection.Geometry.calculate_cross_section_unit_node_normals(cross_section)
 
-    outside = CrossSection.Tools.get_coords_along_node_normals(cross_section, unit_node_normals, t / 2)
+    outside = CrossSection.Geometry.get_coords_along_node_normals(cross_section, unit_node_normals, t / 2)
     X = [outside[i][1] for i in eachindex(outside)]
     Y = [outside[i][2] for i in eachindex(outside)]
     out_nodes = [X Y zeros(Float64, length(xcoords_center))]
     out_nodes_rotated = LinesCurvesNodes.rotate_nodes(out_nodes, rotation_axis="z", rotation_center=[0.0, 0.0, 0.0], θ=atan(roof_slope))
 
-    inside = CrossSection.Tools.get_coords_along_node_normals(cross_section, unit_node_normals, -t / 2)
+    inside = CrossSection.Geometry.get_coords_along_node_normals(cross_section, unit_node_normals, -t / 2)
     X = [inside[i][1] for i in eachindex(inside)]
     Y = [inside[i][2] for i in eachindex(inside)]
     in_nodes = [X Y zeros(Float64, length(xcoords_center))]
