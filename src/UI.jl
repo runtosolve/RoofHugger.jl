@@ -304,10 +304,16 @@ function existing_roof_UI_mapper(purlin_spans, purlin_laps, purlin_spacing, roof
 
     intermediate_bridging_locations = []
 
-    purlin_line = PurlinLine.build(design_code, purlin_segments, purlin_spacing, roof_slope, purlin_cross_section_dimensions, purlin_material_properties, existing_roof_panel_details, existing_roof_panel_material_properties, frame_flange_width, support_locations, purlin_frame_connections, intermediate_bridging_locations)
+    loading_direction = "gravity"
+
+    inputs = PurlinLine.Inputs(loading_direction, design_code, purlin_segments, purlin_spacing, roof_slope, purlin_cross_section_dimensions, purlin_material_properties, existing_roof_panel_details, existing_roof_panel_material_properties, frame_flange_width, support_locations, purlin_frame_connections, intermediate_bridging_locations)
+
+    purlin_line = PurlinLine.build(inputs)
+
+    # purlin_line = PurlinLine.build(design_code, purlin_segments, purlin_spacing, roof_slope, purlin_cross_section_dimensions, purlin_material_properties, existing_roof_panel_details, existing_roof_panel_material_properties, frame_flange_width, support_locations, purlin_frame_connections, intermediate_bridging_locations)
 
     #Run a gravity test.
-    purlin_line.loading_direction = "gravity"
+    # purlin_line.loading_direction = "gravity"
     purlin_line = PurlinLine.test(purlin_line)
 
     return purlin_line

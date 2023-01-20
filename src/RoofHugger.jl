@@ -1,6 +1,6 @@
 module RoofHugger
 
-using PurlinLine, CUFSM, SectionProperties, NumericalIntegration, ThinWalledBeam, ThinWalledBeamColumn, S100AISI, ScrewConnections, CrossSection
+using PurlinLine, CUFSM, NumericalIntegration, ThinWalledBeam, ThinWalledBeamColumn, AISIS100, ScrewConnections, CrossSection
 
 
 export define, analysis, capacity
@@ -181,12 +181,12 @@ function define_roof_hugger_cross_sections(cross_section_dimensions, n, n_radius
         # xcoords_center, ycoords_center = SectionProperties.xycoords_along_normal(xcoords_out, ycoords_out, nodenormals, -t/2)
 
 
-        cross_section = CrossSection.generate_thin_walled(L, θ, n, radius, n_radius)
+        cross_section = CrossSection.Geometry.generate_thin_walled(L, θ, n, radius, n_radius)
 
         #Get node normals on cross-section
-        unit_node_normals = CrossSection.Tools.calculate_cross_section_unit_node_normals(cross_section)
+        unit_node_normals = CrossSection.Geometry.calculate_cross_section_unit_node_normals(cross_section)
         #Get centerline coords
-        centerline = CrossSection.Tools.get_coords_along_node_normals(cross_section, unit_node_normals, t/2)
+        centerline = CrossSection.Geometry.get_coords_along_node_normals(cross_section, unit_node_normals, t/2)
           
         xcoords_center = [centerline[i][1] for i in eachindex(cross_section)]
         ycoords_center = [centerline[i][2] for i in eachindex(cross_section)]
@@ -285,7 +285,7 @@ function define_roof_hugger_purlin_cross_sections(segments, purlin_cross_section
         roof_hugger_purlin_plastic_node_geometry, roof_hugger_purlin_plastic_element_definitions = combine_roof_hugger_purlin_geometry(purlin_cross_section_dimensions[purlin_index], purlin_plastic_cross_section_data[purlin_index], roof_hugger_plastic_cross_section_data[roof_hugger_index])
 
         about_axis = "x"  #The strong axis plastic properties are needed for now.  
-        roof_hugger_purlin_plastic_section_properties = SectionProperties.Lines.calculate_plastic_section_properties(roof_hugger_purlin_plastic_node_geometry, roof_hugger_purlin_plastic_element_definitions, about_axis)
+        roof_hugger_purlin_plastic_section_properties = CrossSection.Properties.calculate_plastic_section_properties(roof_hugger_purlin_plastic_node_geometry, roof_hugger_purlin_plastic_element_definitions, about_axis)
 
         #Add cross section information to data structure.
         roof_hugger_purlin_cross_section_data[i] = PurlinLine.CrossSectionData(n, n_radius, roof_hugger_purlin_node_geometry, roof_hugger_purlin_element_definitions, roof_hugger_purlin_section_properties, roof_hugger_purlin_plastic_section_properties)
@@ -381,10 +381,10 @@ function define_new_deck_bracing_properties(roof_hugger_purlin_line)
             #Calculate the RoofHugger distortional buckling half-wavelength.
 
             #Calculate top flange + lip section properties.
-            Af, Jf, Ixf, Iyf, Ixyf, Cwf, xof,  hxf, hyf, yof = S100AISI.v16.table23131(CorZ, t_roof_hugger, b_top, d_top, θ_top)
+            Af, Jf, Ixf, Iyf, Ixyf, Cwf, xof,  hxf, hyf, yof = AISIS100.v16.table23131(CorZ, t_roof_hugger, b_top, d_top, θ_top)
 
             #Calculate the RoofHugger distortional buckling half-wavelength.
-            Lcrd, L = S100AISI.v16.app23334(ho, μ_roof_hugger, t_roof_hugger, Ixf, xof, hxf, Cwf, Ixyf, Iyf, Lm)
+            Lcrd, L = AISIS100.v16.app23334(ho, μ_roof_hugger, t_roof_hugger, Ixf, xof, hxf, Cwf, Ixyf, Iyf, Lm)
 
             #If Lcrd is longer than the fastener spacing, then the distortional buckling will be restrained by the deck.
             if Lcrd >= Lm
@@ -444,14 +444,14 @@ function define_new_deck_bracing_properties(roof_hugger_purlin_line)
             CorZ = 1
 
             #Calculate top flange + lip section properties.
-            Af, Jf, Ixf, Iyf, Ixyf, Cwf, xof, hxf, hyf, yof = S100AISI.v16.table23131(CorZ, t_roof_hugger, b_top, d_top, θ_top)
+            Af, Jf, Ixf, Iyf, Ixyf, Cwf, xof, hxf, hyf, yof = AISIS100.v16.table23131(CorZ, t_roof_hugger, b_top, d_top, θ_top)
 
             #Define the distance between fasteners as the distortional discrete bracing length.  There are no deck or fasteners in this case, so set Lm = length of purlin line.
             num_segments = size(roof_hugger_purlin_line.inputs.segments)[1]
             Lm = sum([roof_hugger_purlin_line.inputs.segments[i][1] for i = 1:num_segments])
 
             #Calculate the RoofHugger distortional buckling half-wavelength.
-            Lcrd, L = S100AISI.v16.app23334(ho, μ_roof_hugger, t_roof_hugger, Ixf, xof, hxf, Cwf, Ixyf, Iyf, Lm)
+            Lcrd, L = AISIS100.v16.app23334(ho, μ_roof_hugger, t_roof_hugger, Ixf, xof, hxf, Cwf, Ixyf, Iyf, Lm)
 
             rotational_stiffness = []
 
@@ -519,10 +519,10 @@ function define_new_deck_bracing_properties(roof_hugger_purlin_line)
             #Calculate the RoofHugger distortional buckling half-wavelength.
 
             #Calculate top flange + lip section properties.
-            Af, Jf, Ixf, Iyf, Ixyf, Cwf, xof,  hxf, hyf, yof = S100AISI.v16.table23131(CorZ, t_roof_hugger, b_top, d_top, θ_top)
+            Af, Jf, Ixf, Iyf, Ixyf, Cwf, xof,  hxf, hyf, yof = AISIS100.v16.table23131(CorZ, t_roof_hugger, b_top, d_top, θ_top)
 
             #Calculate the RoofHugger distortional buckling half-wavelength.
-            Lcrd, L = S100AISI.v16.app23334(ho, μ_roof_hugger, t_roof_hugger, Ixf, xof, hxf, Cwf, Ixyf, Iyf, Lm)
+            Lcrd, L = AISIS100.v16.app23334(ho, μ_roof_hugger, t_roof_hugger, Ixf, xof, hxf, Cwf, Ixyf, Iyf, Lm)
 
             #If Lcrd is longer than the fastener spacing, then the distortional buckling will be restrained by the deck.
             if Lcrd >= Lm
@@ -631,10 +631,10 @@ function define_existing_deck_bracing_properties(purlin_line)
          #Calculate the purlin distortional buckling half-wavelength.
 
          #Calculate top flange + lip section properties.
-         Af, Jf, Ixf, Iyf, Ixyf, Cwf, xof,  hxf, hyf, yof = S100AISI.v16.table23131(CorZ, t_purlin, b_top, d_top, θ_top)
+         Af, Jf, Ixf, Iyf, Ixyf, Cwf, xof,  hxf, hyf, yof = AISIS100.v16.table23131(CorZ, t_purlin, b_top, d_top, θ_top)
 
          #Calculate the purlin distortional buckling half-wavelength.
-         Lcrd, L = S100AISI.v16.app23334(ho, μ_purlin, t_purlin, Ixf, xof, hxf, Cwf, Ixyf, Iyf, Lm)
+         Lcrd, L = AISIS100.v16.app23334(ho, μ_purlin, t_purlin, Ixf, xof, hxf, Cwf, Ixyf, Iyf, Lm)
 
          #If Lcrd is longer than the fastener spacing, then the distortional buckling will be restrained by the deck.
          if Lcrd >= Lm
@@ -977,7 +977,7 @@ function define_roof_hugger_purlin_net_section(segments, purlin_cross_section_di
         roof_hugger_purlin_plastic_node_geometry, roof_hugger_purlin_plastic_element_definitions = generate_roof_hugger_net_section_purlin_geometry(roof_hugger_purlin_plastic_cross_section_data[i], roof_hugger_plastic_cross_section_data[hugger_section_index], purlin_plastic_cross_section_data[purlin_section_index], purlin_cross_section_dimensions[purlin_section_index], roof_hugger_punch_out_dimensions[hugger_punchout_index])
 
         about_axis = "x"  #The strong axis plastic properties are needed for now.  
-        roof_hugger_purlin_plastic_section_properties = SectionProperties.Lines.calculate_plastic_section_properties(roof_hugger_purlin_plastic_node_geometry, roof_hugger_purlin_plastic_element_definitions, about_axis)
+        roof_hugger_purlin_plastic_section_properties = CrossSection.Properties.calculate_plastic_section_properties(roof_hugger_purlin_plastic_node_geometry, roof_hugger_purlin_plastic_element_definitions, about_axis)
 
         #Add cross section information to data structure.
         cross_section_data[i] = PurlinLine.CrossSectionData(roof_hugger_purlin_cross_section_data[i].n, roof_hugger_purlin_cross_section_data[i].n_radius, roof_hugger_purlin_node_geometry, roof_hugger_purlin_element_definitions, section_properties, roof_hugger_purlin_plastic_section_properties)
@@ -1248,7 +1248,7 @@ function calculate_yielding_flexural_strength(roof_hugger_purlin_line)
         # end
 
         Mcrℓ_yy_free_flange = 10.0^10 #Make this a big number so we just get back eMy
-        My_yy_free_flange, eMy_yy_free_flange = S100AISI.v16.f321(My_yy_free_flange, Mcrℓ_yy_free_flange, roof_hugger_purlin_line.inputs.design_code)
+        My_yy_free_flange, eMy_yy_free_flange = AISIS100.v16.f321(My_yy_free_flange, Mcrℓ_yy_free_flange, roof_hugger_purlin_line.inputs.design_code)
 
         yielding_flexural_strength_free_flange_yy[i] = PurlinLine.YieldingFlexuralStrengthData(Syy_pos_free_flange, Syy_neg_free_flange, My_yy_pos_free_flange, My_yy_neg_free_flange, My_yy_free_flange, eMy_yy_free_flange)
 
@@ -1307,11 +1307,11 @@ function calculate_local_global_flexural_strength(roof_hugger_purlin_line)
             Fy_roof_hugger = roof_hugger_purlin_line.inputs.roof_hugger_material_properties[hugger_material_index][3]
             Fy_purlin = roof_hugger_purlin_line.inputs.purlin_material_properties[purlin_material_index][3]
             Fy = minimum([Fy_roof_hugger, Fy_purlin])  #take the minimum for now, can improve later
-            lambda_l, Cyl, Mp, Myc, Myt3, Mnℓ_xx_pos_no_hole, eMnℓ_xx_pos_no_hole = S100AISI.v16.f323(Mne_xx, Mcrℓ_pos_no_hole, Sc, St, Z, Fy, roof_hugger_purlin_line.inputs.design_code)
+            lambda_l, Cyl, Mp, Myc, Myt3, Mnℓ_xx_pos_no_hole, eMnℓ_xx_pos_no_hole = AISIS100.v16.f323(Mne_xx, Mcrℓ_pos_no_hole, Sc, St, Z, Fy, roof_hugger_purlin_line.inputs.design_code)
 
         else
 
-            Mnℓ_xx_pos_no_hole, eMnℓ_xx_pos_no_hole =  S100AISI.v16.f321(Mne_xx, Mcrℓ_pos_no_hole, roof_hugger_purlin_line.inputs.design_code)
+            Mnℓ_xx_pos_no_hole, eMnℓ_xx_pos_no_hole =  AISIS100.v16.f321(Mne_xx, Mcrℓ_pos_no_hole, roof_hugger_purlin_line.inputs.design_code)
         
         end
 
@@ -1331,11 +1331,11 @@ function calculate_local_global_flexural_strength(roof_hugger_purlin_line)
             Fy_roof_hugger = roof_hugger_purlin_line.inputs.roof_hugger_material_properties[hugger_material_index][3]
             Fy_purlin = roof_hugger_purlin_line.inputs.purlin_material_properties[purlin_material_index][3]
             Fy = minimum([Fy_roof_hugger, Fy_purlin])  #take the minimum for now, can improve later
-            lambda_l, Cyl, Mp, Myc, Myt3, Mnℓ_xx_pos_hole, eMnℓ_xx_pos_hole = S100AISI.v16.f323(My_net, Mcrℓ_pos_hole, Sc, St, Z, Fy, roof_hugger_purlin_line.inputs.design_code)
+            lambda_l, Cyl, Mp, Myc, Myt3, Mnℓ_xx_pos_hole, eMnℓ_xx_pos_hole = AISIS100.v16.f323(My_net, Mcrℓ_pos_hole, Sc, St, Z, Fy, roof_hugger_purlin_line.inputs.design_code)
 
         else
 
-            Mnℓ_xx_pos_hole, eMnℓ_xx_pos_hole =  S100AISI.v16.f322(Mne_xx, Mcrℓ_pos_hole, My_net, roof_hugger_purlin_line.inputs.design_code)
+            Mnℓ_xx_pos_hole, eMnℓ_xx_pos_hole =  AISIS100.v16.f322(Mne_xx, Mcrℓ_pos_hole, My_net, roof_hugger_purlin_line.inputs.design_code)
         
         end
 
@@ -1357,16 +1357,16 @@ function calculate_local_global_flexural_strength(roof_hugger_purlin_line)
             Fy_roof_hugger = roof_hugger_purlin_line.inputs.roof_hugger_material_properties[hugger_material_index][3]
             Fy_purlin = roof_hugger_purlin_line.inputs.purlin_material_properties[purlin_material_index][3]
             Fy = minimum([Fy_roof_hugger, Fy_purlin])  #take the minimum for now, can improve later
-            lambda_l, Cyl, Mp, Myc, Myt3, Mnℓ_xx_neg_no_hole, eMnℓ_xx_neg_no_hole = S100AISI.v16.f323(Mne_xx, Mcrℓ_neg_no_hole, Sc, St, Z, Fy, roof_hugger_purlin_line.inputs.design_code)
+            lambda_l, Cyl, Mp, Myc, Myt3, Mnℓ_xx_neg_no_hole, eMnℓ_xx_neg_no_hole = AISIS100.v16.f323(Mne_xx, Mcrℓ_neg_no_hole, Sc, St, Z, Fy, roof_hugger_purlin_line.inputs.design_code)
 
         else
 
-            Mnℓ_xx_neg_no_hole, eMnℓ_xx_neg_no_hole =  S100AISI.v16.f321(Mne_xx, Mcrℓ_neg_no_hole, roof_hugger_purlin_line.inputs.design_code)
+            Mnℓ_xx_neg_no_hole, eMnℓ_xx_neg_no_hole =  AISIS100.v16.f321(Mne_xx, Mcrℓ_neg_no_hole, roof_hugger_purlin_line.inputs.design_code)
         
         end
         
         #At a RoofHugger punchout, net section yielding is the upper limit for negative flexure.  
-        Mnℓ_xx_neg_hole, eMnℓ_xx_neg_hole =  S100AISI.v16.f322(Mne_xx, Mcrℓ_neg_no_hole, My_net, roof_hugger_purlin_line.inputs.design_code)
+        Mnℓ_xx_neg_hole, eMnℓ_xx_neg_hole =  AISIS100.v16.f322(Mne_xx, Mcrℓ_neg_no_hole, My_net, roof_hugger_purlin_line.inputs.design_code)
 
         #Find the minimum of the strengths at the punchout or away from the punchout.
         Mnℓ_xx_neg = minimum([Mnℓ_xx_neg_no_hole, Mnℓ_xx_neg_hole])
@@ -1385,9 +1385,9 @@ function calculate_local_global_flexural_strength(roof_hugger_purlin_line)
         ###weak axis flexure, local-global interaction
         Mne_yy = roof_hugger_purlin_line.yielding_flexural_strength_yy[i].My
 
-        Mnℓ_yy_pos, eMnℓ_yy_pos = S100AISI.v16.f321(Mne_yy, roof_hugger_purlin_line.local_buckling_yy_pos[i].Mcr, roof_hugger_purlin_line.inputs.design_code)
+        Mnℓ_yy_pos, eMnℓ_yy_pos = AISIS100.v16.f321(Mne_yy, roof_hugger_purlin_line.local_buckling_yy_pos[i].Mcr, roof_hugger_purlin_line.inputs.design_code)
 
-        Mnℓ_yy_neg, eMnℓ_yy_neg = S100AISI.v16.f321(Mne_yy, roof_hugger_purlin_line.local_buckling_yy_neg[i].Mcr, roof_hugger_purlin_line.inputs.design_code)
+        Mnℓ_yy_neg, eMnℓ_yy_neg = AISIS100.v16.f321(Mne_yy, roof_hugger_purlin_line.local_buckling_yy_neg[i].Mcr, roof_hugger_purlin_line.inputs.design_code)
 
         local_global_flexural_strength_yy[i] = PurlinLine.LocalGlobalFlexuralStrengthData(Mne_yy, Mnℓ_yy_pos, Mnℓ_yy_neg, eMnℓ_yy_pos, eMnℓ_yy_neg)
 
@@ -1397,9 +1397,9 @@ function calculate_local_global_flexural_strength(roof_hugger_purlin_line)
 
         #Assume no local buckling for now in the free flange strength calculation.  Set Mcrℓ to Mne times a big number. 
 
-        Mnℓ_yy_pos_free_flange, eMnℓ_yy_pos_free_flange = S100AISI.v16.f321(Mne_yy_free_flange, Mne_yy_free_flange * 1000, roof_hugger_purlin_line.inputs.design_code)
+        Mnℓ_yy_pos_free_flange, eMnℓ_yy_pos_free_flange = AISIS100.v16.f321(Mne_yy_free_flange, Mne_yy_free_flange * 1000, roof_hugger_purlin_line.inputs.design_code)
 
-        Mnℓ_yy_neg_free_flange, eMnℓ_yy_neg_free_flange = S100AISI.v16.f321(Mne_yy_free_flange, Mne_yy_free_flange * 1000, roof_hugger_purlin_line.inputs.design_code)
+        Mnℓ_yy_neg_free_flange, eMnℓ_yy_neg_free_flange = AISIS100.v16.f321(Mne_yy_free_flange, Mne_yy_free_flange * 1000, roof_hugger_purlin_line.inputs.design_code)
 
         local_global_flexural_strength_free_flange_yy[i] = PurlinLine.LocalGlobalFlexuralStrengthData(Mne_yy_free_flange, Mnℓ_yy_pos_free_flange, Mnℓ_yy_neg_free_flange, eMnℓ_yy_pos_free_flange, eMnℓ_yy_neg_free_flange)
 
@@ -1455,7 +1455,7 @@ function define_roof_hugger_purlin_distortional_net_section(roof_hugger_purlin_l
 
         #Approximate the Lcrd for each cross-section.   
         Lcrd = roof_hugger_purlin_line.distortional_buckling_xx_pos[i].Lcr
-        tr = S100AISI.v16.app2C2262(t_roof_hugger, L_hole, Lcrd)
+        tr = AISIS100.v16.app2C2262(t_roof_hugger, L_hole, Lcrd)
 
         #Define element definitions.
         roof_hugger_purlin_element_definitions = roof_hugger_purlin_line.roof_hugger_purlin_cross_section_data[i].element_definitions
@@ -1619,9 +1619,9 @@ function calculate_distortional_flexural_strength(roof_hugger_purlin_line)
 
     for i = 1:num_purlin_segments
 
-        Mnd_xx_pos, eMnd_xx_pos = S100AISI.v16.f411(roof_hugger_purlin_line.yielding_flexural_strength_xx[i].My, roof_hugger_purlin_line.distortional_buckling_xx_net_pos[i].Mcr, roof_hugger_purlin_line.inputs.design_code)  #use Mcrd_hole always here
+        Mnd_xx_pos, eMnd_xx_pos = AISIS100.v16.f411(roof_hugger_purlin_line.yielding_flexural_strength_xx[i].My, roof_hugger_purlin_line.distortional_buckling_xx_net_pos[i].Mcr, roof_hugger_purlin_line.inputs.design_code)  #use Mcrd_hole always here
 
-        Mnd_xx_neg, eMnd_xx_neg = S100AISI.v16.f411(roof_hugger_purlin_line.yielding_flexural_strength_xx[i].My, roof_hugger_purlin_line.distortional_buckling_xx_neg[i].Mcr, roof_hugger_purlin_line.inputs.design_code)  #assume holes do not affect negative bending distortional buckling for RoofHugger + purlin
+        Mnd_xx_neg, eMnd_xx_neg = AISIS100.v16.f411(roof_hugger_purlin_line.yielding_flexural_strength_xx[i].My, roof_hugger_purlin_line.distortional_buckling_xx_neg[i].Mcr, roof_hugger_purlin_line.inputs.design_code)  #assume holes do not affect negative bending distortional buckling for RoofHugger + purlin
 
         distortional_flexural_strength_xx[i] = PurlinLine.DistortionalFlexuralStrengthData(Mnd_xx_pos, Mnd_xx_neg, eMnd_xx_pos, eMnd_xx_neg)
 
@@ -1668,9 +1668,9 @@ function calculate_torsion_strength(roof_hugger_purlin_line)
         Fy_purlin = roof_hugger_purlin_line.inputs.purlin_material_properties[purlin_material_index][3]
         Fy_roof_hugger = roof_hugger_purlin_line.inputs.roof_hugger_material_properties[hugger_material_index][3]
         
-        Bn_purlin, eBn_purlin = S100AISI.v24.h411(Cw_purlin, Fy_purlin, Wn_purlin, roof_hugger_purlin_line.inputs.design_code)
+        Bn_purlin, eBn_purlin = AISIS100.v24.h411(Cw_purlin, Fy_purlin, Wn_purlin, roof_hugger_purlin_line.inputs.design_code)
         
-        Bn_roof_hugger, eBn_roof_hugger= S100AISI.v24.h411(Cw_roof_hugger, Fy_roof_hugger, Wn_roof_hugger, roof_hugger_purlin_line.inputs.design_code)
+        Bn_roof_hugger, eBn_roof_hugger= AISIS100.v24.h411(Cw_roof_hugger, Fy_roof_hugger, Wn_roof_hugger, roof_hugger_purlin_line.inputs.design_code)
         
         Bn = Bn_purlin +  Bn_roof_hugger
         eBn = eBn_purlin +  eBn_roof_hugger
@@ -1679,7 +1679,7 @@ function calculate_torsion_strength(roof_hugger_purlin_line)
 
         # Fy = minimum([Fy_purlin, Fy_roof_hugger])  #Maximum warping stress will be in the top right RoofHugger flange or the bottom purlin flange lip, so use the minimum yield stress here.
 
-        # Bn, eBn = S100AISI.v24.h411(Cw, Fy, Wn, roof_hugger_purlin_line.inputs.design_code)
+        # Bn, eBn = AISIS100.v24.h411(Cw, Fy, Wn, roof_hugger_purlin_line.inputs.design_code)
 
         torsion_strength_purlin[i] = PurlinLine.TorsionStrengthData(Wn_purlin, Bn_purlin, eBn_purlin)
         torsion_strength_roof_hugger[i] = PurlinLine.TorsionStrengthData(Wn_roof_hugger, Bn_roof_hugger, eBn_roof_hugger)
@@ -1745,18 +1745,18 @@ function calculate_shear_strength(roof_hugger_purlin_line)
         h_flat_purlin = full_web_depth_purlin - bottom_flange_web_outside_radius_purlin - top_flange_web_outside_radius_purlin
 
         #Calculate plate buckling coefficient.
-        kv_purlin  = S100AISI.v16.g233(a, h_flat_purlin)
+        kv_purlin  = AISIS100.v16.g233(a, h_flat_purlin)
 
         #Calculate shear buckling stress.
-        Fcrv_purlin = S100AISI.v16.g232(E_purlin, μ_purlin, kv_purlin, h_flat_purlin, t_purlin)
-        Vcr_purlin = S100AISI.v16.g231(h_flat_purlin, t_purlin, Fcrv_purlin)
+        Fcrv_purlin = AISIS100.v16.g232(E_purlin, μ_purlin, kv_purlin, h_flat_purlin, t_purlin)
+        Vcr_purlin = AISIS100.v16.g231(h_flat_purlin, t_purlin, Fcrv_purlin)
 
         #Calculate shear yield force.
-        Aw_purlin, Vy_purlin = S100AISI.v16.g215_6(h_flat_purlin, t_purlin, Fy_purlin)
+        Aw_purlin, Vy_purlin = AISIS100.v16.g215_6(h_flat_purlin, t_purlin, Fy_purlin)
 
         #Calculate shear buckling strength.
-        # Vn_purlin, eVn_purlin = S100AISI.v16.g21(h_flat_purlin, t_purlin, Fy_purlin, Vcr_purlin, roof_hugger_purlin_line.inputs.design_code)
-        Vn_purlin, eVn_purlin = S100AISI.v16.g21_3(Vcr_purlin, Vy_purlin, roof_hugger_purlin_line.inputs.design_code)
+        # Vn_purlin, eVn_purlin = AISIS100.v16.g21(h_flat_purlin, t_purlin, Fy_purlin, Vcr_purlin, roof_hugger_purlin_line.inputs.design_code)
+        Vn_purlin, eVn_purlin = AISIS100.v16.g21_3(Vcr_purlin, Vy_purlin, roof_hugger_purlin_line.inputs.design_code)
 
 
         #Vn, RoofHugger
@@ -1776,18 +1776,18 @@ function calculate_shear_strength(roof_hugger_purlin_line)
         h_flat_roof_hugger = full_web_depth_roof_hugger - bottom_flange_web_outside_radius_roof_hugger - top_flange_web_outside_radius_roof_hugger
 
         #Calculate plate buckling coefficient.
-        kv_roof_hugger  = S100AISI.v16.g233(a, h_flat_roof_hugger)
+        kv_roof_hugger  = AISIS100.v16.g233(a, h_flat_roof_hugger)
 
         #Calculate shear buckling stress.
-        Fcrv_roof_hugger = S100AISI.v16.g232(E_roof_hugger, μ_roof_hugger, kv_roof_hugger, h_flat_roof_hugger, t_roof_hugger)
-        Vcr_roof_hugger = S100AISI.v16.g231(h_flat_roof_hugger, t_roof_hugger, Fcrv_roof_hugger)
+        Fcrv_roof_hugger = AISIS100.v16.g232(E_roof_hugger, μ_roof_hugger, kv_roof_hugger, h_flat_roof_hugger, t_roof_hugger)
+        Vcr_roof_hugger = AISIS100.v16.g231(h_flat_roof_hugger, t_roof_hugger, Fcrv_roof_hugger)
 
         #Calculate shear yield force.
-        Aw_roof_hugger, Vy_roof_hugger = S100AISI.v16.g215_6(h_flat_roof_hugger, t_roof_hugger, Fy_roof_hugger)
+        Aw_roof_hugger, Vy_roof_hugger = AISIS100.v16.g215_6(h_flat_roof_hugger, t_roof_hugger, Fy_roof_hugger)
 
         #Calculate shear buckling strength for one web of RoofHugger.
-        # Vn_roof_hugger, eVn_roof_hugger = S100AISI.v16.g21(h_flat_roof_hugger, t_roof_hugger, Fy_roof_hugger, Vcr_roof_hugger, roof_hugger_purlin_line.inputs.design_code)
-        Vn_roof_hugger, eVn_roof_hugger = S100AISI.v16.g21_3(Vcr_roof_hugger, Vy_roof_hugger, roof_hugger_purlin_line.inputs.design_code)
+        # Vn_roof_hugger, eVn_roof_hugger = AISIS100.v16.g21(h_flat_roof_hugger, t_roof_hugger, Fy_roof_hugger, Vcr_roof_hugger, roof_hugger_purlin_line.inputs.design_code)
+        Vn_roof_hugger, eVn_roof_hugger = AISIS100.v16.g21_3(Vcr_roof_hugger, Vy_roof_hugger, roof_hugger_purlin_line.inputs.design_code)
  
         Vn = Vn_purlin + Vn_roof_hugger
         eVn = eVn_purlin + eVn_roof_hugger
@@ -1861,7 +1861,7 @@ function define(design_code, segments, spacing, roof_slope, purlin_cross_section
     roof_hugger_purlin_line.roof_hugger_cross_section_data = define_roof_hugger_cross_sections(roof_hugger_purlin_line.inputs.roof_hugger_cross_section_dimensions, n, n_radius)
 
     #Create the PurlinLine data structure.
-    purlin_line = PurlinLine.PurlinLineObject()
+    purlin_line = PurlinLine.Model()
 
 
     	#length, DL, purlin section_properties, Hugger section properties, purlin material_properties, Hugger material properties, Hugger punchout dimensions
@@ -1875,7 +1875,8 @@ function define(design_code, segments, spacing, roof_slope, purlin_cross_section
 
 
     #Capture PurlinLine inputs.
-    purlin_line.inputs = PurlinLine.Inputs(design_code, purlin_segments, spacing, roof_slope, purlin_cross_section_dimensions, purlin_material_properties, deck_details, deck_material_properties, frame_flange_width, support_locations,   purlin_frame_connections, bridging_locations)
+    loading_direction = "gravity"
+    purlin_line.inputs = PurlinLine.Inputs(loading_direction, design_code, purlin_segments, spacing, roof_slope, purlin_cross_section_dimensions, purlin_material_properties, deck_details, deck_material_properties, frame_flange_width, support_locations,   purlin_frame_connections, bridging_locations)
 
     #Define the purlin cross-section discretization and calculate section properties.
     # n = [4, 4, 5, 4, 4]
@@ -2023,7 +2024,7 @@ function calculate_roof_hugger_web_crippling_strength(roof_hugger_purlin_line)
         θ = roof_hugger_purlin_line.inputs.roof_hugger_cross_section_dimensions[section_index][7]  #angle between web plane and surface plane 
 
         #Use AISI S100-16 Table G5-3 for Z-sections.
-        table_g53 = S100AISI.v16.table_g53()       
+        table_g53 = AISIS100.v16.table_g53()       
 
         web_crippling_coeff = filter(row -> row.support_condition == "Fastened to Support", table_g53)
         web_crippling_coeff = filter(row -> row.flange_condition == "Stiffened or Partially Stiffened Flanges", web_crippling_coeff)
@@ -2040,7 +2041,7 @@ function calculate_roof_hugger_web_crippling_strength(roof_hugger_purlin_line)
         Ω_w = web_crippling_coeff.ASD[1]
         ϕ_w_LSD = web_crippling_coeff.LSD[1]
 
-        Pn, ePn = S100AISI.v16.g51(t, h_flat, Fy, θ, C, C_R, R, C_N, N, C_h, ϕ_w, Ω_w, ϕ_w_LSD, roof_hugger_purlin_line.inputs.design_code)
+        Pn, ePn = AISIS100.v16.g51(t, h_flat, Fy, θ, C, C_R, R, C_N, N, C_h, ϕ_w, Ω_w, ϕ_w_LSD, roof_hugger_purlin_line.inputs.design_code)
 
         roof_hugger_web_crippling[i] = PurlinLine.WebCripplingData(web_crippling_coeff.support_condition[1], web_crippling_coeff.flange_condition[1], web_crippling_coeff.load_case[1], web_crippling_coeff.load_location[1], C, C_R, R, C_N, N, C_h, ϕ_w, Ω_w, ϕ_w_LSD, Pn, ePn)
 
