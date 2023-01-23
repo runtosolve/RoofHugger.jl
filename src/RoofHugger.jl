@@ -1651,19 +1651,19 @@ function calculate_torsion_strength(roof_hugger_purlin_line)
 
     for i = 1:num_purlin_segments
 
-        	#length, DL, purlin section_properties, Hugger section properties, purlin material_properties, Hugger material properties, Hugger punchout dimensions
-
+        purlin_section_index = roof_hugger_purlin_line.inputs.segments[i][3]
+        hugger_section_index = roof_hugger_purlin_line.inputs.segments[i][4]
 
         #Define the material property index associated with purlin segment i.
         purlin_material_index = roof_hugger_purlin_line.inputs.segments[i][5]
         hugger_material_index = roof_hugger_purlin_line.inputs.segments[i][6]
         
-        Cw_purlin = roof_hugger_purlin_line.purlin_cross_section_data[i].section_properties.Cw
-        Cw_roof_hugger = roof_hugger_purlin_line.roof_hugger_cross_section_data[i].section_properties.Cw
+        Cw_purlin = roof_hugger_purlin_line.purlin_cross_section_data[purlin_section_index].section_properties.Cw
+        Cw_roof_hugger = roof_hugger_purlin_line.roof_hugger_cross_section_data[hugger_section_index].section_properties.Cw  
 
         #This is the maximum magnitude of the warping stress function.  
-        Wn_purlin = maximum(abs.(roof_hugger_purlin_line.purlin_cross_section_data[i].section_properties.wn))
-        Wn_roof_hugger = maximum(abs.(roof_hugger_purlin_line.roof_hugger_cross_section_data[i].section_properties.wn))
+        Wn_purlin = maximum(abs.(roof_hugger_purlin_line.purlin_cross_section_data[purlin_section_index].section_properties.wn))
+        Wn_roof_hugger = maximum(abs.(roof_hugger_purlin_line.roof_hugger_cross_section_data[hugger_section_index].section_properties.wn)) 
 
         Fy_purlin = roof_hugger_purlin_line.inputs.purlin_material_properties[purlin_material_index][3]
         Fy_roof_hugger = roof_hugger_purlin_line.inputs.roof_hugger_material_properties[hugger_material_index][3]
@@ -1676,10 +1676,6 @@ function calculate_torsion_strength(roof_hugger_purlin_line)
         eBn = eBn_purlin +  eBn_roof_hugger
 
         Wn = 0.0   #not needed, sum Bn_purlin and Bn_hugger
-
-        # Fy = minimum([Fy_purlin, Fy_roof_hugger])  #Maximum warping stress will be in the top right RoofHugger flange or the bottom purlin flange lip, so use the minimum yield stress here.
-
-        # Bn, eBn = AISIS100.v24.h411(Cw, Fy, Wn, roof_hugger_purlin_line.inputs.design_code)
 
         torsion_strength_purlin[i] = PurlinLine.TorsionStrengthData(Wn_purlin, Bn_purlin, eBn_purlin)
         torsion_strength_roof_hugger[i] = PurlinLine.TorsionStrengthData(Wn_roof_hugger, Bn_roof_hugger, eBn_roof_hugger)
