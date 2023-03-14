@@ -320,7 +320,7 @@ function existing_roof_UI_mapper(purlin_spans, purlin_laps, purlin_spacing, roof
 
 end
 
-function retrofit_UI_mapper(purlin_line, roof_hugger_data, roof_hugger_type, new_deck_type, new_deck_data)
+function retrofit_UI_mapper(purlin_line, roof_hugger_data, roof_hugger_type, new_deck_type, new_deck_data, existing_deck_type, existing_deck_data)
 
 
     roof_hugger_section_index = findfirst(==(roof_hugger_type), roof_hugger_data.section_name)
@@ -371,8 +371,15 @@ function retrofit_UI_mapper(purlin_line, roof_hugger_data, roof_hugger_type, new
     end
 
 
+
+
 	#Roof Hugger is attached with closely spaced screws to existing deck so update existing deck details.
-	purlin_line.inputs.deck_details = ("screw-fastened", purlin_line.inputs.deck_details[2], 3.0, purlin_line.inputs.deck_details[4], purlin_line.inputs.deck_details[5])
+	existing_deck_index = findfirst(==(existing_deck_type), existing_deck_data.deck_name)
+    
+    fastener_diameter = 0.212
+    Fss = 2.5
+    fastener_spacing = 3.0
+    purlin_line.inputs.deck_details = ("screw-fastened", existing_deck_data[existing_deck_index, 2], fastener_spacing, fastener_diameter, Fss)
 
     # Assemble the purlin line model, now with the addition of Hugger Framing.
     roof_hugger_purlin_line = RoofHugger.define(purlin_line.inputs.design_code, hugger_purlin_segments, purlin_line.inputs.spacing, purlin_line.inputs.roof_slope, purlin_line.inputs.cross_section_dimensions, roof_hugger_cross_section_dimensions, roof_hugger_punch_out_dimensions, purlin_line.inputs.material_properties, roof_hugger_material_properties, purlin_line.inputs.deck_details, purlin_line.inputs.deck_material_properties, new_roof_panel_details, new_roof_panel_material_properties, purlin_line.inputs.frame_flange_width, purlin_line.inputs.support_locations, purlin_line.inputs.purlin_frame_connections, purlin_line.inputs.bridging_locations)
