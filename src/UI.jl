@@ -320,7 +320,7 @@ function existing_roof_UI_mapper(purlin_spans, purlin_laps, purlin_spacing, roof
 
 end
 
-function retrofit_UI_mapper(purlin_line, roof_hugger_data, roof_hugger_type, new_deck_type, new_deck_data, existing_deck_type, existing_deck_data)
+function retrofit_UI_mapper(purlin_line, roof_hugger_data, roof_hugger_type, new_deck_type, new_deck_data, existing_deck_type, existing_deck_data, roof_hugger_material_properties)
 
 
     roof_hugger_section_index = findfirst(==(roof_hugger_type), roof_hugger_data.section_name)
@@ -328,7 +328,7 @@ function retrofit_UI_mapper(purlin_line, roof_hugger_data, roof_hugger_type, new
     roof_hugger_cross_section_dimensions = [tuple([roof_hugger_data[roof_hugger_section_index, :][i] for i = 2:13]...)]
 
     # Define the Roof Hugger material properties.
-    roof_hugger_material_properties = [(29500.0, 0.30, 55.0, 70.0)] #E, ν, Fy, Fu
+    # roof_hugger_material_properties = [(29500.0, 0.30, 55.0, 70.0)] #E, ν, Fy, Fu
 
     # Define the Roof Hugger punchout dimensions.
 	roof_hugger_punch_out_dimensions = [(roof_hugger_data[roof_hugger_section_index, :punchout_width], roof_hugger_data[roof_hugger_section_index, :punchout_height])]
