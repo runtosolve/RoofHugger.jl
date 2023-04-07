@@ -314,11 +314,11 @@ function existing_roof_UI_mapper(purlin_spans, purlin_laps, purlin_spacing, roof
 
     #Run a gravity test.
     # purlin_line.loading_direction = "gravity"
-    purlin_line = PurlinLine.test(purlin_line)
+    purlin_line = PurlinLine.test(purlin_line);
 
-    return purlin_line
+    return purlin_line;
 
-end
+end;
 
 function retrofit_UI_mapper(purlin_line, roof_hugger_data, roof_hugger_type, new_deck_type, new_deck_data, existing_deck_type, existing_deck_data, roof_hugger_material_properties)
 
