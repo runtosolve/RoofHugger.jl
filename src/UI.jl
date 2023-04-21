@@ -260,7 +260,7 @@ function define_span_segments(purlin_spans, purlin_laps, purlin_size_span_assign
 
 end
 
-function existing_roof_UI_mapper(purlin_spans, purlin_laps, purlin_spacing, roof_slope, purlin_data, existing_deck_type, existing_deck_data, frame_flange_width, purlin_frame_connection, purlin_type_1, purlin_type_2, purlin_size_span_assignment)
+function existing_roof_UI_mapper(purlin_spans, purlin_laps, purlin_spacing, roof_slope, purlin_data, existing_deck_type, existing_deck_data, frame_flange_width, purlin_frame_connection, purlin_type_1, purlin_type_2, purlin_size_span_assignment, loading_direction)
 
     design_code = "AISI S100-16 ASD"
 
@@ -304,7 +304,7 @@ function existing_roof_UI_mapper(purlin_spans, purlin_laps, purlin_spacing, roof
 
     intermediate_bridging_locations = []
 
-    loading_direction = "gravity"
+    # loading_direction = "gravity"
 
     inputs = PurlinLine.Inputs(loading_direction, design_code, purlin_segments, purlin_spacing, roof_slope, purlin_cross_section_dimensions, purlin_material_properties, existing_roof_panel_details, existing_roof_panel_material_properties, frame_flange_width, support_locations, purlin_frame_connections, intermediate_bridging_locations)
 
@@ -320,7 +320,7 @@ function existing_roof_UI_mapper(purlin_spans, purlin_laps, purlin_spacing, roof
 
 end;
 
-function retrofit_UI_mapper(purlin_line, roof_hugger_data, roof_hugger_type, new_deck_type, new_deck_data, existing_deck_type, existing_deck_data, roof_hugger_material_properties)
+function retrofit_UI_mapper(purlin_line, roof_hugger_data, roof_hugger_type, new_deck_type, new_deck_data, existing_deck_type, existing_deck_data, roof_hugger_material_properties, loading_direction)
 
 
     roof_hugger_section_index = findfirst(==(roof_hugger_type), roof_hugger_data.section_name)
@@ -386,7 +386,8 @@ function retrofit_UI_mapper(purlin_line, roof_hugger_data, roof_hugger_type, new
 
 
     # Run a test to calculate the expected roof system failure pressure including the Roof Hugger.
-    roof_hugger_purlin_line.loading_direction = "gravity"
+    # roof_hugger_purlin_line.loading_direction = "gravity"
+    roof_hugger_purlin_line.loading_direction = loading_direction
     roof_hugger_purlin_line = RoofHugger.capacity(roof_hugger_purlin_line)
 
     return roof_hugger_purlin_line
