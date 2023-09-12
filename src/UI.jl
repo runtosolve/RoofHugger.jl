@@ -10,26 +10,29 @@ function define_lap_section_types(purlin_size_span_assignment)
 
     num_laps = length(purlin_size_span_assignment) - 1
 
-    lap_section_types = Array{String}(undef, num_laps)
+    # lap_section_types = Array{String}(undef, num_laps)
+
+    lap_section_types = Vector{Tuple{Int64, Int64}}(undef, num_laps)
 
     for i = 1:num_laps
 
-        purlin_span_1 = purlin_size_span_assignment[i]
-        purlin_span_2 = purlin_size_span_assignment[i+1]
+        lap_section_types[i] = (purlin_size_span_assignment[i], purlin_size_span_assignment[i+1])
+        # purlin_span_1 = purlin_size_span_assignment[i]
+        # purlin_span_2 = purlin_size_span_assignment[i+1]
 
-        if (purlin_span_1 == purlin_span_2) & (purlin_span_1 == 1)
+        # if (purlin_span_1 == purlin_span_2) & (purlin_span_1 == 1)
 
-            lap_section_types[i] = "1-1"
+        #     lap_section_types[i] = "1-1"
 
-        elseif (purlin_span_1 == purlin_span_2) & (purlin_span_1 == 2)
+        # elseif (purlin_span_1 == purlin_span_2) & (purlin_span_1 == 2)
 
-            lap_section_types[i] = "2-2"
+        #     lap_section_types[i] = "2-2"
 
-        elseif purlin_span_1 != purlin_span_2
+        # elseif purlin_span_1 != purlin_span_2
 
-            lap_section_types[i] = "1-2"
+        #     lap_section_types[i] = "1-2"
 
-        end
+        # end
 
     end
 
@@ -37,7 +40,7 @@ function define_lap_section_types(purlin_size_span_assignment)
 
 end
 
-function define_lap_section_index(lap_section_types)
+function define_lap_section_index(lap_section_types, purlin_size_span_assignment)
 
     num_lap_sections = length(lap_section_types)
 
@@ -51,7 +54,7 @@ function define_lap_section_index(lap_section_types)
 
         index = findall(x -> x == unique_lap_sections[i], lap_section_types)
 
-        lap_section_index[index] .= 2 + i
+        lap_section_index[index] .= maximum(purlin_size_span_assignment) + i
 
     end
 
@@ -67,7 +70,7 @@ function define_lap_segments(purlin_laps, purlin_size_span_assignment)
 
     lap_section_types = define_lap_section_types(purlin_size_span_assignment)
 
-    lap_section_index = define_lap_section_index(lap_section_types)
+    lap_section_index = define_lap_section_index(lap_section_types, purlin_size_span_assignment)
 
     for i = 1:num_interior_supports
 
@@ -127,88 +130,116 @@ function define_purlin_line_segments(span_segments, lap_segments)
 
 end
 
-function define_purlin_line_cross_section_dimensions(purlin_line_segments, lap_section_types, purlin_data, purlin_type_1, purlin_type_2)
+function define_purlin_line_cross_section_dimensions(purlin_line_segments, lap_section_types, purlin_data, purlin_types)
 
     purlin_line_cross_section_indices = [purlin_line_segments[i][3] for i = 1:length(purlin_line_segments)]
 
     unique_purlin_line_cross_section_indices = sort(unique(purlin_line_cross_section_indices))
 
-    if !isempty(lap_section_types) #for multiple spans only
+    # if !isempty(lap_section_types) #for multiple spans only
 
-        if isempty(findall(x -> x == 2, unique_purlin_line_cross_section_indices)) #if there is no second purlin type defined, then add it, it won't be used though
+    #     if isempty(findall(x -> x == 2, unique_purlin_line_cross_section_indices)) #if there is no second purlin type defined, then add it, it won't be used though
 
-            unique_purlin_line_cross_section_indices = [unique_purlin_line_cross_section_indices[1]; 2; unique_purlin_line_cross_section_indices[2:end]]
+    #         unique_purlin_line_cross_section_indices = [unique_purlin_line_cross_section_indices[1]; 2; unique_purlin_line_cross_section_indices[2:end]]
+
+    #     end
+
+    # end
+
+    num_cross_sections = length(unique_purlin_line_cross_section_indices)
+
+    unique_lap_cross_sections = unique(lap_section_types)
+
+    num_lap_cross_sections = length(unique_lap_cross_sections)
+
+    num_purlin_cross_sections = num_cross_sections - num_lap_cross_sections
+
+    purlin_line_cross_section_dimensions = Vector{Tuple{String,Float64,Float64,Float64,Float64,Float64,Float64,Float64,Float64,Float64,Float64,Float64,Float64,Float64,Float64,Float64}}(undef, num_cross_sections)
+
+    # purlin_index_1 = findfirst(==(purlin_type_1), purlin_data.section_name)
+    # purlin_index_2 = findfirst(==(purlin_type_2), purlin_data.section_name)
+
+    # purlin_type_indices = [purlin_index_1; purlin_index_2]
+
+    for i = 1:num_cross_sections
+
+        if i <= num_purlin_cross_sections
+
+            purlin_index = findfirst(purlin->purlin==purlin_types[i], purlin_data.section_name)
+            purlin_line_cross_section_dimensions[i] = tuple([purlin_data[purlin_index, :][i] for i = 2:17]...)
+
+        else
+
+            # purlin_index_1 = findfirst(lap->lap == lap_section_types[i][1], purlin_data.section_name)
+            # purlin_index_2 = findfirst(lap->lap == lap_section_types[i][2], purlin_data.section_name)
+
+            baseline_cross_section_dimensions = [purlin_line_cross_section_dimensions[unique_lap_cross_sections[i-num_purlin_cross_sections][1]][j] for j=1:16]  #use the first purlin index here 
+
+            #add the purlin 1 and purlin 2 thicknesses together
+            baseline_cross_section_dimensions[2] += purlin_line_cross_section_dimensions[unique_lap_cross_sections[i-num_purlin_cross_sections][2]][2]
+
+            purlin_line_cross_section_dimensions[i] = tuple([baseline_cross_section_dimensions[i] for i = 1:16]...)
+
 
         end
 
     end
 
-    num_purlin_line_cross_sections = length(unique_purlin_line_cross_section_indices)
+        # cross_section_index = unique_purlin_line_cross_section_indices[i]
 
-    purlin_line_cross_section_dimensions = Vector{Tuple{String,Float64,Float64,Float64,Float64,Float64,Float64,Float64,Float64,Float64,Float64,Float64,Float64,Float64,Float64,Float64}}(undef, num_purlin_line_cross_sections)
+        # if cross_section_index <= 2
 
-    purlin_index_1 = findfirst(==(purlin_type_1), purlin_data.section_name)
-    purlin_index_2 = findfirst(==(purlin_type_2), purlin_data.section_name)
+        #     if purlin_type_2 == "none" #not used, set cross-section equal to purlin_type_1
 
-    purlin_type_indices = [purlin_index_1; purlin_index_2]
+        #         cross_section_index = unique_purlin_line_cross_section_indices[1]
 
-    for i = 1:num_purlin_line_cross_sections
+        #     end
 
-        cross_section_index = unique_purlin_line_cross_section_indices[i]
+        #     purlin_line_cross_section_dimensions[i] = tuple([purlin_data[purlin_type_indices[cross_section_index], :][i] for i = 2:17]...)
 
-        if cross_section_index <= 2
+        # elseif cross_section_index > 2 #these are the laps
 
-            if purlin_type_2 == "none" #not used, set cross-section equal to purlin_type_1
+        #     lap_type = lap_section_types[cross_section_index-2]
 
-                cross_section_index = unique_purlin_line_cross_section_indices[1]
+        #     if lap_type == "1-1"
 
-            end
+        #         cross_section_index = unique_purlin_line_cross_section_indices[1]
 
-            purlin_line_cross_section_dimensions[i] = tuple([purlin_data[purlin_type_indices[cross_section_index], :][i] for i = 2:17]...)
+        #         baseline_cross_section_dimensions = deepcopy(purlin_data[purlin_type_indices[cross_section_index], :])
 
-        elseif cross_section_index > 2 #these are the laps
+        #         #multiply base metal thickness by 2
+        #         baseline_cross_section_dimensions[3] = baseline_cross_section_dimensions[3] * 2.0
 
-            lap_type = lap_section_types[cross_section_index-2]
+        #         purlin_line_cross_section_dimensions[i] = tuple([baseline_cross_section_dimensions[i] for i = 2:17]...)
 
-            if lap_type == "1-1"
+        #     elseif lap_type == "2-2"
 
-                cross_section_index = unique_purlin_line_cross_section_indices[1]
+        #         cross_section_index = unique_purlin_line_cross_section_indices[2]
 
-                baseline_cross_section_dimensions = deepcopy(purlin_data[purlin_type_indices[cross_section_index], :])
+        #         baseline_cross_section_dimensions = deepcopy(purlin_data[purlin_type_indices[cross_section_index], :])
 
-                #multiply base metal thickness by 2
-                baseline_cross_section_dimensions[3] = baseline_cross_section_dimensions[3] * 2.0
+        #         #multiply base metal thickness by 2
+        #         baseline_cross_section_dimensions[3] = baseline_cross_section_dimensions[3] * 2.0
 
-                purlin_line_cross_section_dimensions[i] = tuple([baseline_cross_section_dimensions[i] for i = 2:17]...)
+        #         purlin_line_cross_section_dimensions[i] = tuple([baseline_cross_section_dimensions[i] for i = 2:17]...)
 
-            elseif lap_type == "2-2"
+        #     elseif lap_type == "1-2"
 
-                cross_section_index = unique_purlin_line_cross_section_indices[2]
+        #         cross_section_index = unique_purlin_line_cross_section_indices[1]
 
-                baseline_cross_section_dimensions = deepcopy(purlin_data[purlin_type_indices[cross_section_index], :])
+        #         baseline_cross_section_dimensions = deepcopy(purlin_data[purlin_type_indices[cross_section_index], :])
 
-                #multiply base metal thickness by 2
-                baseline_cross_section_dimensions[3] = baseline_cross_section_dimensions[3] * 2.0
-
-                purlin_line_cross_section_dimensions[i] = tuple([baseline_cross_section_dimensions[i] for i = 2:17]...)
-
-            elseif lap_type == "1-2"
-
-                cross_section_index = unique_purlin_line_cross_section_indices[1]
-
-                baseline_cross_section_dimensions = deepcopy(purlin_data[purlin_type_indices[cross_section_index], :])
-
-                #add the purlin 1 and purlin 2 thicknesses together
-                baseline_cross_section_dimensions[3] = baseline_cross_section_dimensions[3] + purlin_line_cross_section_dimensions[2][2]
+        #         #add the purlin 1 and purlin 2 thicknesses together
+        #         baseline_cross_section_dimensions[3] = baseline_cross_section_dimensions[3] + purlin_line_cross_section_dimensions[2][2]
 
 
-                purlin_line_cross_section_dimensions[i] = tuple([baseline_cross_section_dimensions[i] for i = 2:17]...)
+        #         purlin_line_cross_section_dimensions[i] = tuple([baseline_cross_section_dimensions[i] for i = 2:17]...)
 
-            end
+        #     end
 
-        end
+        # end
 
-    end
+    # end
 
     return purlin_line_cross_section_dimensions
 
@@ -260,7 +291,7 @@ function define_span_segments(purlin_spans, purlin_laps, purlin_size_span_assign
 
 end
 
-function existing_roof_UI_mapper(purlin_spans, purlin_laps, purlin_spacing, roof_slope, purlin_data, existing_deck_type, existing_deck_data, frame_flange_width, purlin_frame_connection, purlin_type_1, purlin_type_2, purlin_size_span_assignment, loading_direction)
+function existing_roof_UI_mapper(purlin_spans, purlin_laps, purlin_spacing, roof_slope, purlin_data, existing_deck_type, existing_deck_data, frame_flange_width, purlin_frame_connection, purlin_types, purlin_size_span_assignment, loading_direction)
 
     design_code = "AISI S100-16 ASD"
 
@@ -276,7 +307,7 @@ function existing_roof_UI_mapper(purlin_spans, purlin_laps, purlin_spacing, roof
 
     roof_slope = rad2deg(atan(roof_slope))
 
-    purlin_cross_section_dimensions = define_purlin_line_cross_section_dimensions(purlin_segments, lap_section_types, purlin_data, purlin_type_1, purlin_type_2)
+    purlin_cross_section_dimensions = define_purlin_line_cross_section_dimensions(purlin_segments, lap_section_types, purlin_data, purlin_types)
 
     purlin_material_properties = [(29500.0, 0.30, 50.0, 70.0)]  #E, ν, Fy, Fu
 
@@ -341,7 +372,11 @@ function retrofit_UI_mapper(purlin_line, roof_hugger_data, roof_hugger_type, new
     new_deck_index = findfirst(==(new_deck_type), new_deck_data.deck_name)
 
 
-    if !ismissing(new_deck_data[new_deck_index, 3]) #screw_fastened
+    if new_deck_type == "no deck"
+
+        new_roof_panel_details = ["no deck"]
+
+    elseif !ismissing(new_deck_data[new_deck_index, 3]) #screw_fastened
 
         new_roof_panel_details = ("screw-fastened", new_deck_data[new_deck_index, 2], new_deck_data[new_deck_index, 3], new_deck_data[new_deck_index, 4], new_deck_data[new_deck_index, 5])
 

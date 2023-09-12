@@ -2637,9 +2637,9 @@ function calculate_roof_hugger_web_crippling_demand_to_capacity(roof_hugger_purl
 
         else
 
-            DC[i] = roof_hugger_purlin_line.support_reactions.Fyy[i]/roof_hugger_purlin_line.roof_hugger_web_crippling[i].ePn
+            #DC[i] = roof_hugger_purlin_line.support_reactions.Fyy[i]/roof_hugger_purlin_line.roof_hugger_web_crippling[i].ePn
 
-            #DC[i] = 0.0  #It seems that load is spread out enough so that Hugger crippling is not a problem, according to two span test results at least.
+            DC[i] = 0.0  #It seems that load is spread out enough so that Hugger crippling is not a problem, according to two span test results at least.
 
         end
 
