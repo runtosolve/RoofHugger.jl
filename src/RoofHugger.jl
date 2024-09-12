@@ -1,6 +1,6 @@
 module RoofHugger
 
-using PurlinLine, CUFSM, NumericalIntegration, ThinWalledBeam, ThinWalledBeamColumn, AISIS100, ScrewConnections, CrossSection
+using PurlinLine, CUFSM, NumericalIntegration, ThinWalledBeam, ThinWalledBeamColumn, AISIS100, ScrewConnections, CrossSectionGeometry, SectionProperties
 
 
 export define, analysis, capacity
@@ -181,12 +181,12 @@ function define_roof_hugger_cross_sections(cross_section_dimensions, n, n_radius
         # xcoords_center, ycoords_center = SectionProperties.xycoords_along_normal(xcoords_out, ycoords_out, nodenormals, -t/2)
 
 
-        cross_section = CrossSection.Geometry.generate_thin_walled(L, θ, n, radius, n_radius)
+        cross_section = CrossSectionGeometry.generate_thin_walled(L, θ, n, radius, n_radius)
 
         #Get node normals on cross-section
-        unit_node_normals = CrossSection.Geometry.calculate_cross_section_unit_node_normals(cross_section)
+        unit_node_normals = CrossSectionGeometry.calculate_cross_section_unit_node_normals(cross_section)
         #Get centerline coords
-        centerline = CrossSection.Geometry.get_coords_along_node_normals(cross_section, unit_node_normals, t/2)
+        centerline = CrossSectionGeometry.get_coords_along_node_normals(cross_section, unit_node_normals, t/2)
           
         xcoords_center = [centerline[i][1] for i in eachindex(cross_section)]
         ycoords_center = [centerline[i][2] for i in eachindex(cross_section)]
@@ -285,7 +285,7 @@ function define_roof_hugger_purlin_cross_sections(segments, purlin_cross_section
         roof_hugger_purlin_plastic_node_geometry, roof_hugger_purlin_plastic_element_definitions = combine_roof_hugger_purlin_geometry(purlin_cross_section_dimensions[purlin_index], purlin_plastic_cross_section_data[purlin_index], roof_hugger_plastic_cross_section_data[roof_hugger_index])
 
         about_axis = "x"  #The strong axis plastic properties are needed for now.  
-        roof_hugger_purlin_plastic_section_properties = CrossSection.Properties.calculate_plastic_section_properties(roof_hugger_purlin_plastic_node_geometry, roof_hugger_purlin_plastic_element_definitions, about_axis)
+        roof_hugger_purlin_plastic_section_properties = SectionProperties.calculate_plastic_section_properties(roof_hugger_purlin_plastic_node_geometry, roof_hugger_purlin_plastic_element_definitions, about_axis)
 
         #Add cross section information to data structure.
         roof_hugger_purlin_cross_section_data[i] = PurlinLine.CrossSectionData(n, n_radius, roof_hugger_purlin_node_geometry, roof_hugger_purlin_element_definitions, roof_hugger_purlin_section_properties, roof_hugger_purlin_plastic_section_properties)
@@ -977,7 +977,7 @@ function define_roof_hugger_purlin_net_section(segments, purlin_cross_section_di
         roof_hugger_purlin_plastic_node_geometry, roof_hugger_purlin_plastic_element_definitions = generate_roof_hugger_net_section_purlin_geometry(roof_hugger_purlin_plastic_cross_section_data[i], roof_hugger_plastic_cross_section_data[hugger_section_index], purlin_plastic_cross_section_data[purlin_section_index], purlin_cross_section_dimensions[purlin_section_index], roof_hugger_punch_out_dimensions[hugger_punchout_index])
 
         about_axis = "x"  #The strong axis plastic properties are needed for now.  
-        roof_hugger_purlin_plastic_section_properties = CrossSection.Properties.calculate_plastic_section_properties(roof_hugger_purlin_plastic_node_geometry, roof_hugger_purlin_plastic_element_definitions, about_axis)
+        roof_hugger_purlin_plastic_section_properties = SectionProperties.calculate_plastic_section_properties(roof_hugger_purlin_plastic_node_geometry, roof_hugger_purlin_plastic_element_definitions, about_axis)
 
         #Add cross section information to data structure.
         cross_section_data[i] = PurlinLine.CrossSectionData(roof_hugger_purlin_cross_section_data[i].n, roof_hugger_purlin_cross_section_data[i].n_radius, roof_hugger_purlin_node_geometry, roof_hugger_purlin_element_definitions, section_properties, roof_hugger_purlin_plastic_section_properties)
