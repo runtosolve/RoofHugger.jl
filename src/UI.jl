@@ -293,7 +293,7 @@ end
 
 function existing_roof_UI_mapper(purlin_spans, purlin_laps, purlin_spacing, roof_slope, purlin_data, existing_deck_type, existing_deck_data, frame_flange_width, purlin_frame_connection, purlin_types, purlin_size_span_assignment, loading_direction)
 
-    design_code = "AISI S100-16 ASD"
+    design_code = "ASD"
 
     span_segments = define_span_segments(purlin_spans, purlin_laps, purlin_size_span_assignment)
 

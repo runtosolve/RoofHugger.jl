@@ -1668,9 +1668,9 @@ function calculate_torsion_strength(roof_hugger_purlin_line)
         Fy_purlin = roof_hugger_purlin_line.inputs.purlin_material_properties[purlin_material_index][3]
         Fy_roof_hugger = roof_hugger_purlin_line.inputs.roof_hugger_material_properties[hugger_material_index][3]
         
-        Bn_purlin, eBn_purlin = AISIS100.v24.h411(Cw_purlin, Fy_purlin, Wn_purlin, roof_hugger_purlin_line.inputs.design_code)
+        Bn_purlin, eBn_purlin = AISIS100.v2024.h411(Cw_purlin, Fy_purlin, Wn_purlin, roof_hugger_purlin_line.inputs.design_code)
         
-        Bn_roof_hugger, eBn_roof_hugger= AISIS100.v24.h411(Cw_roof_hugger, Fy_roof_hugger, Wn_roof_hugger, roof_hugger_purlin_line.inputs.design_code)
+        Bn_roof_hugger, eBn_roof_hugger= AISIS100.v2024.h411(Cw_roof_hugger, Fy_roof_hugger, Wn_roof_hugger, roof_hugger_purlin_line.inputs.design_code)
         
         Bn = Bn_purlin +  Bn_roof_hugger
         eBn = eBn_purlin +  eBn_roof_hugger
