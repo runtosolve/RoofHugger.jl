@@ -1,12 +1,14 @@
 name = "RoofHugger"
 uuid = "81b2e6b6-b7f4-4910-9a11-8266460f9833"
 authors = ["Cris Moen <cris.moen@runtosolve.com>"]
-version = "0.1.0"
+version = "0.2.0"
 
 [deps]
 AISIS100 = "01f7396e-a581-4110-84fa-e8964400bef8"
+CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 CUFSM = "82b4978f-06ae-48e0-88e8-a26b4f7a0fa1"
 CrossSectionGeometry = "e5713cf4-1a83-4860-95bf-b82253e75fb4"
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 FornbergFiniteDiff = "bc6155a8-87c8-416d-b52d-44cfacf6a7f1"
 InternalForces = "0ac833a1-d586-4577-9e6b-83a7c69b6692"
 Interpolations = "a98d9a8b-a2ab-59e6-89dd-64a1c18fca59"

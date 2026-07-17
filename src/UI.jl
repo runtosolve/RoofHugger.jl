@@ -1,6 +1,6 @@
 module UI
 
-using PurlinLine, Plots, LinesCurvesNodes, CrossSectionGeometry
+using PurlinLine, Plots, LinesCurvesNodes, CrossSectionGeometry, CSV, DataFrames
 
 using ..RoofHugger
 
@@ -618,6 +618,23 @@ function generate_roof_hugger_geometry(t, xcoords_center, ycoords_center, roof_s
     # in_nodes_rotated = Geometry.rotate_nodes(in_nodes, rotation_axis = "z", rotation_center = [0.0, 0.0, 0.0], θ=atan(roof_slope))
 
     return center_nodes_rotated, out_nodes_rotated, in_nodes_rotated
+
+end
+
+
+function load_databases()
+
+    database_dir = joinpath(@__DIR__, "..", "database")
+
+    purlin_data = CSV.read(joinpath(database_dir, "Purlins.csv"), DataFrame)
+
+    roof_hugger_data = CSV.read(joinpath(database_dir, "Huggers.csv"), DataFrame)
+
+    existing_deck_data = CSV.read(joinpath(database_dir, "Existing_Deck.csv"), DataFrame)
+
+    new_deck_data = CSV.read(joinpath(database_dir, "New_Deck.csv"), DataFrame)
+
+    return (purlin_data = purlin_data, roof_hugger_data = roof_hugger_data, existing_deck_data = existing_deck_data, new_deck_data = new_deck_data)
 
 end
 
