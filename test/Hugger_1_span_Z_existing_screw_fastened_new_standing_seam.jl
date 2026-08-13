@@ -40,7 +40,7 @@ existing_deck_type = "PBR 22 gauge"
 
 span_segments = UI.define_span_segments(purlin_spans, purlin_laps, purlin_size_span_assignment)
 
-purlin_line = UI.existing_roof_UI_mapper(purlin_spans, purlin_laps, purlin_spacing, roof_slope, purlin_data, existing_deck_type, existing_deck_data, frame_flange_width, purlin_frame_connection, purlin_type_1, purlin_type_2, purlin_size_span_assignment);
+purlin_line = UI.existing_roof_UI_mapper(purlin_spans, purlin_laps, purlin_spacing, roof_slope, purlin_data, existing_deck_type, existing_deck_data, frame_flange_width, purlin_frame_connection, (purlin_type_1, purlin_type_2), purlin_size_span_assignment, "gravity");
 	
 # plot(purlin_line.model.inputs.z, purlin_line.model.outputs.u)
 # plot(purlin_line.model.z, purlin_line.model.v)
@@ -61,17 +61,19 @@ roof_hugger_type = "Model C 4.5 16g"
 
 new_deck_type = "Vertical Rib SS 18 24 gauge"
 
-roof_hugger_purlin_line = UI.retrofit_UI_mapper(purlin_line, roof_hugger_data, roof_hugger_type, new_deck_type, new_deck_data);
+roof_hugger_material_properties = [(29500.0, 0.30, 55.0, 70.0)]  #E, ν, Fy, Fu
+
+roof_hugger_purlin_line = UI.retrofit_UI_mapper(purlin_line, roof_hugger_data, roof_hugger_type, new_deck_type, new_deck_data, existing_deck_type, existing_deck_data, roof_hugger_material_properties, "gravity");
 
 
 roof_hugger_purlin_line.applied_pressure*1000*144
 
 roof_hugger_purlin_line.failure_limit_state
 
-flexure_torsion_demand_to_capacity::PurlinLine.FlexureTorsion_DemandToCapacity_Data
-biaxial_bending_demand_to_capacity::PurlinLine.BiaxialBending_DemandToCapacity_Data
-distortional_demand_to_capacity::Array{Float64}
-flexure_shear_demand_to_capacity::Array{Float64}
+# flexure_torsion_demand_to_capacity::PurlinLine.FlexureTorsion_DemandToCapacity_Data
+# biaxial_bending_demand_to_capacity::PurlinLine.BiaxialBending_DemandToCapacity_Data
+# distortional_demand_to_capacity::Array{Float64}
+# flexure_shear_demand_to_capacity::Array{Float64}
 
 
 struct BiaxialBending_DemandToCapacity_Data
@@ -103,11 +105,11 @@ roof_hugger_purlin_line.yielding_flexural_strength_xx
 
 roof_hugger_purlin_line.distortional_flexural_strength_xx
 
-Mne::Float64
-Mnℓ_pos::Float64
-Mnℓ_neg::Float64
-eMnℓ_pos::Float64
-eMnℓ_neg::Float64
+# Mne::Float64
+# Mnℓ_pos::Float64
+# Mnℓ_neg::Float64
+# eMnℓ_pos::Float64
+# eMnℓ_neg::Float64
 
 
 
@@ -119,7 +121,7 @@ roof_hugger_purlin_line.local_global_flexural_strength_xx_hole
 
 
 plot(roof_hugger_purlin_line.model.inputs.z, roof_hugger_purlin_line.Β_distortional_gradient_factor, markershape = :o)
-Β_distortional_gradient_factor
+# Β_distortional_gradient_factor
 
 
 plot(roof_hugger_purlin_line.model.inputs.z, roof_hugger_purlin_line.internal_forces.Mxx, markershape = :o)
@@ -130,7 +132,7 @@ plot(roof_hugger_purlin_line.model.inputs.z, roof_hugger_purlin_line.expected_st
 minimum(roof_hugger_purlin_line.expected_strengths.eMnd_xx)
 
 
-eMnd_xx
+# eMnd_xx
 
 # plot(purlin_line.model.z, purlin_line.internal_forces.Mxx, markershape = :o)
 # plot(purlin_line.model.z, purlin_line.internal_forces.Myy, markershape = :o)

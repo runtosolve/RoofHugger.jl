@@ -40,7 +40,7 @@ existing_deck_type = "PBR 22 gauge"
 
 span_segments = UI.define_span_segments(purlin_spans, purlin_laps, purlin_size_span_assignment)
 
-purlin_line = UI.existing_roof_UI_mapper(purlin_spans, purlin_laps, purlin_spacing, roof_slope, purlin_data, existing_deck_type, existing_deck_data, frame_flange_width, purlin_frame_connection, purlin_type_1, purlin_type_2, purlin_size_span_assignment);
+purlin_line = UI.existing_roof_UI_mapper(purlin_spans, purlin_laps, purlin_spacing, roof_slope, purlin_data, existing_deck_type, existing_deck_data, frame_flange_width, purlin_frame_connection, (purlin_type_1, purlin_type_2), purlin_size_span_assignment, "gravity");
 	
 # plot(purlin_line.model.inputs.z, purlin_line.model.outputs.u)
 # plot(purlin_line.model.z, purlin_line.model.v)
@@ -65,7 +65,9 @@ new_deck_type = "PBR 22 gauge"
 
 
 
-roof_hugger_purlin_line = UI.retrofit_UI_mapper(purlin_line, roof_hugger_data, roof_hugger_type, new_deck_type, new_deck_data);
+roof_hugger_material_properties = [(29500.0, 0.30, 55.0, 70.0)]  #E, ν, Fy, Fu
+
+roof_hugger_purlin_line = UI.retrofit_UI_mapper(purlin_line, roof_hugger_data, roof_hugger_type, new_deck_type, new_deck_data, existing_deck_type, existing_deck_data, roof_hugger_material_properties, "gravity");
 
 
 roof_hugger_purlin_line.applied_pressure*1000*144

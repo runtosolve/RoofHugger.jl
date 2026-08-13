@@ -1,4 +1,5 @@
-using CSV, DataFrames, PurlinLine, RoofHugger, StructuresKit, Plots
+using CSV, DataFrames, RoofHugger, Plots
+import PurlinLine
 
 
 
@@ -43,16 +44,16 @@ span_segments = [(276.0, 1, 1),(252.0, 1, 1),(252.0, 1, 1),(276.0, 1, 1)]
 
 
 
-purlin_line = UI.existing_roof_UI_mapper(purlin_spans, purlin_laps, purlin_spacing, roof_slope, purlin_data, existing_deck_type, existing_deck_data, frame_flange_width, purlin_frame_connection, purlin_type_1, purlin_type_2, purlin_size_span_assignment);
+purlin_line = UI.existing_roof_UI_mapper(purlin_spans, purlin_laps, purlin_spacing, roof_slope, purlin_data, existing_deck_type, existing_deck_data, frame_flange_width, purlin_frame_connection, (purlin_type_1, purlin_type_2), purlin_size_span_assignment, "gravity");
 
 # Lcrd = purlin_line.distortional_buckling_xx_pos[1].Lcr 
 
 # M_start = purlin_line.internal_forces.Mxx
 
 # using Dierckx
-# spl = Spline1D(purlin_line.model.z, purlin_line.internal_forces.Mxx)
+# spl = Spline1D(purlin_line.model.inputs.z, purlin_line.internal_forces.Mxx)
 
-# M_end = [spl(purlin_line.model.z[i] + purlin_line.distortional_buckling_xx_pos[1].Lcr) for i in eachindex(purlin_line.model.z)]
+# M_end = [spl(purlin_line.model.inputs.z[i] + purlin_line.distortional_buckling_xx_pos[1].Lcr) for i in eachindex(purlin_line.model.inputs.z)]
 
 # M1 = [minimum([abs(M_start[i]), abs(M_end[i])]) for i in eachindex(M_start)]
 # M2 = -[maximum([abs(M_start[i]), abs(M_end[i])]) for i in eachindex(M_start)]
@@ -70,12 +71,12 @@ purlin_line = UI.existing_roof_UI_mapper(purlin_spans, purlin_laps, purlin_spaci
 # Β_test = AISIS10016.app23333.(L, Lm, M1, M2)
 
 
-# plot(purlin_line.model.z, M1./M2)
+# plot(purlin_line.model.inputs.z, M1./M2)
 
-# plot(purlin_line.model.z, Β)
+# plot(purlin_line.model.inputs.z, Β)
 
-# plot(purlin_line.model.z, M1)
-# plot!(purlin_line.model.z, M2)
+# plot(purlin_line.model.inputs.z, M1)
+# plot!(purlin_line.model.inputs.z, M2)
 # M2[end-1]
 # M1[end-1]
 
@@ -87,7 +88,9 @@ new_deck_type = "PBR 22 gauge"
 
 
 
-roof_hugger_purlin_line = UI.retrofit_UI_mapper(purlin_line, roof_hugger_data, roof_hugger_type, new_deck_type, new_deck_data, hugger_window_dimensions);
+roof_hugger_material_properties = [(29500.0, 0.30, 55.0, 70.0)]  #E, ν, Fy, Fu
+
+roof_hugger_purlin_line = UI.retrofit_UI_mapper(purlin_line, roof_hugger_data, roof_hugger_type, new_deck_type, new_deck_data, existing_deck_type, existing_deck_data, roof_hugger_material_properties, "gravity");
 
 
 
@@ -96,7 +99,7 @@ roof_hugger_purlin_line = UI.retrofit_UI_mapper(purlin_line, roof_hugger_data, r
 
 
 
-# plot(purlin_line.model.z, M2)
+# plot(purlin_line.model.inputs.z, M2)
 
 # # M1 = -0
 # # M2 = -75.0
@@ -113,25 +116,25 @@ roof_hugger_purlin_line = UI.retrofit_UI_mapper(purlin_line, roof_hugger_data, r
 # AISIS10016.app23333(L, Lm, M1, M2)
 
 
-plot(purlin_line.model.z, purlin_line.model.u, markershape = :o)
-plot(purlin_line.model.z, purlin_line.model.v, markershape = :o)
-plot(purlin_line.model.z, purlin_line.model.ϕ, markershape = :o)
+plot(purlin_line.model.inputs.z, purlin_line.model.outputs.u, markershape = :o)
+plot(purlin_line.model.inputs.z, purlin_line.model.outputs.v, markershape = :o)
+plot(purlin_line.model.inputs.z, purlin_line.model.outputs.ϕ, markershape = :o)
 
-plot(purlin_line.model.z, purlin_line.internal_forces.Mxx, markershape = :o)
-plot(purlin_line.model.z, purlin_line.internal_forces.Myy, markershape = :o)
-plot(purlin_line.model.z, purlin_line.internal_forces.T, markershape = :o)
-plot(purlin_line.model.z, purlin_line.internal_forces.Vyy, markershape = :o)
+plot(purlin_line.model.inputs.z, purlin_line.internal_forces.Mxx, markershape = :o)
+plot(purlin_line.model.inputs.z, purlin_line.internal_forces.Myy, markershape = :o)
+plot(purlin_line.model.inputs.z, purlin_line.internal_forces.T, markershape = :o)
+plot(purlin_line.model.inputs.z, purlin_line.internal_forces.Vyy, markershape = :o)
 
 purlin_line.failure_location
 purlin_line.failure_limit_state
 purlin_line.applied_pressure*1000*144
 
 
-PurlinLine.calculate_support_reactions(purlin_line.inputs.support_locations, purlin_line.model.z, purlin_line.internal_forces.Vyy)
+PurlinLine.calculate_support_reactions(purlin_line.inputs.support_locations, purlin_line.model.inputs.z, purlin_line.internal_forces.Vyy)
 
 
-findfirst(x->x≈324.0, purlin_line.model.z)
-findfirst(x->x≈876.0, purlin_line.model.z)
+findfirst(x->x≈324.0, purlin_line.model.inputs.z)
+findfirst(x->x≈876.0, purlin_line.model.inputs.z)
 
 purlin_line.internal_forces.Mxx[23]
 
@@ -139,7 +142,7 @@ purlin_line.distortional_flexural_strength_xx[1]
 
 purlin_line.expected_strengths.eMnd_xx[24]
 
-plot(purlin_line.model.z, purlin_line.expected_strengths.eMnd_xx, markershape = :o)
+plot(purlin_line.model.inputs.z, purlin_line.expected_strengths.eMnd_xx, markershape = :o)
 
 purlin_line.expected_strengths.eMnd_xx[12]
 
@@ -152,13 +155,13 @@ roof_hugger_purlin_line.expected_strengths
 show(roof_hugger_purlin_line.yielding_flexural_strength_xx)
 
 
-plot(roof_hugger_purlin_line.model.z, roof_hugger_purlin_line.expected_strengths.eMnℓ_xx)
+plot(roof_hugger_purlin_line.model.inputs.z, roof_hugger_purlin_line.expected_strengths.eMnℓ_xx)
 
-plot(purlin_line.model.z, purlin_line.expected_strengths.eMnℓ_xx)
+plot(purlin_line.model.inputs.z, purlin_line.expected_strengths.eMnℓ_xx)
 
 
-plot(roof_hugger_purlin_line.model.z, roof_hugger_purlin_line.flexure_torsion_demand_to_capacity.action_Mxx)
-plot!(roof_hugger_purlin_line.model.z, roof_hugger_purlin_line.flexure_torsion_demand_to_capacity.action_Myy)
-plot!(roof_hugger_purlin_line.model.z, roof_hugger_purlin_line.flexure_torsion_demand_to_capacity.action_B)
-plot!(roof_hugger_purlin_line.model.z, roof_hugger_purlin_line.flexure_torsion_demand_to_capacity.action_Myy_freeflange)
-plot!(roof_hugger_purlin_line.model.z, roof_hugger_purlin_line.flexure_torsion_demand_to_capacity.interaction)
+plot(roof_hugger_purlin_line.model.inputs.z, roof_hugger_purlin_line.flexure_torsion_demand_to_capacity.action_Mxx)
+plot!(roof_hugger_purlin_line.model.inputs.z, roof_hugger_purlin_line.flexure_torsion_demand_to_capacity.action_Myy)
+plot!(roof_hugger_purlin_line.model.inputs.z, roof_hugger_purlin_line.flexure_torsion_demand_to_capacity.action_B)
+plot!(roof_hugger_purlin_line.model.inputs.z, roof_hugger_purlin_line.flexure_torsion_demand_to_capacity.action_Myy_freeflange)
+plot!(roof_hugger_purlin_line.model.inputs.z, roof_hugger_purlin_line.flexure_torsion_demand_to_capacity.interaction)
