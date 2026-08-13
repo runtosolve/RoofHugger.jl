@@ -2650,18 +2650,18 @@ function calculate_roof_hugger_web_crippling_demand_to_capacity(roof_hugger_purl
 end
 
 
-function capacity(roof_hugger_purlin_line)
+function capacity(roof_hugger_purlin_line; verbose = false, max_iterations = 200)
 
-    DC_tolerance = 0.01  
-    
+    DC_tolerance = 0.01
+
     if roof_hugger_purlin_line.loading_direction == "gravity"
 
         load_sign = 1.0
-    
+
     elseif roof_hugger_purlin_line.loading_direction =="uplift"
-    
+
         load_sign = -1.0
-    
+
     end
 
     #Run a very small pressure to get the test going.
@@ -2671,6 +2671,10 @@ function capacity(roof_hugger_purlin_line)
 
     #Define initial residual.
     residual = 1.0 - abs(max_DC)
+
+    num_iterations = 0
+
+    verbose && println("iter 0: applied_pressure=$(roof_hugger_purlin_line.applied_pressure), max_DC=$max_DC, residual=$residual")
 
     while residual > DC_tolerance
 
@@ -2682,7 +2686,17 @@ function capacity(roof_hugger_purlin_line)
         roof_hugger_purlin_line = RoofHugger.analysis(roof_hugger_purlin_line)
         max_DC = PurlinLine.find_max_demand_to_capacity(roof_hugger_purlin_line)
 
-        residual = 1.0 - abs(max_DC)
+        residual = abs(1.0 - abs(max_DC))
+
+        num_iterations += 1
+
+        verbose && println("iter $num_iterations: applied_pressure=$(roof_hugger_purlin_line.applied_pressure), max_DC=$max_DC, residual=$residual")
+
+        if num_iterations >= max_iterations
+            error("RoofHugger.capacity did not converge within $max_iterations iterations " *
+                  "(last applied_pressure=$(roof_hugger_purlin_line.applied_pressure), max_DC=$max_DC, residual=$residual) -- " *
+                  "possible oscillation between governing failure modes; pass verbose=true to see the full iteration history.")
+        end
 
     end
 
