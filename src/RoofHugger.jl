@@ -1,6 +1,6 @@
 module RoofHugger
 
-using PurlinLine, CUFSM, NumericalIntegration, ThinWalledBeam, ThinWalledBeamColumn, AISIS100, ScrewConnections, CrossSectionGeometry, SectionProperties
+using PurlinLine, CUFSM, NumericalIntegration, ThinWalledBeam, PlautBeamColumnElement, AISIS100, ScrewConnections, CrossSectionGeometry, SectionProperties
 
 
 export define, analysis, capacity
@@ -106,7 +106,7 @@ mutable struct RoofHuggerObject
 
     deck_springs::DeckSprings
 
-    free_flange_model::ThinWalledBeamColumn.Model
+    free_flange_model::PlautBeamColumnElement.Model
 
     internal_forces::PurlinLine.InternalForceData
 
@@ -2494,7 +2494,7 @@ function beam_column_interface(roof_hugger_purlin_line)
     end
 
 
-    return z, A, Ix, Iy, Io, J, Cw, E, G, ax, ay, kx, ky, kϕ, hx, hy, kH, end_boundary_conditions, supports
+    return z, A, Ix, Iy, Io, J, Cw, E, G, ax, ay, kx, ky, kϕ, hx, hy, kH, end_boundary_conditions, supports, xo, yo
 
 end
 
@@ -2571,7 +2571,7 @@ function analysis(roof_hugger_purlin_line)
     roof_hugger_purlin_line.internal_forces = PurlinLine.InternalForceData(P, Mxx, Myy, Vxx, Vyy, T, B)
 
     #Translate purlin_line design variables to BeamColumn design variables.
-    z, Af, Ixf, Iyf, Iof, Jf, Cwf, E, G, axf, ayf, kxf, kyf, kϕf, hxf, hyf, kH, end_boundary_conditions, supports = beam_column_interface(roof_hugger_purlin_line)
+    z, Af, Ixf, Iyf, Iof, Jf, Cwf, E, G, axf, ayf, kxf, kyf, kϕf, hxf, hyf, kH, end_boundary_conditions, supports, xof, yof = beam_column_interface(roof_hugger_purlin_line)
 
     #Calculate axial force in free flange.
     Pf = calculate_free_flange_axial_force(Mxx, roof_hugger_purlin_line)
@@ -2584,16 +2584,17 @@ function analysis(roof_hugger_purlin_line)
     qyf = zeros(Float64, num_nodes)
 
  
-    roof_hugger_purlin_line.free_flange_model = ThinWalledBeamColumn.solve(z, Af, Ixf, Iyf, Iof, Jf, Cwf, E, G, axf, ayf, kxf, kyf, kϕf, hxf, hyf, qxf, qyf, Pf, end_boundary_conditions, supports)
-
-    # #Run the free flange model.
-    # roof_hugger_purlin_line.free_flange_model = ThinWalledBeamColumn.solve(roof_hugger_purlin_line.free_flange_model)
+    #Solve the free flange beam-column model with PlautBeamColumnElement (Plaut & Moen 2020, Thin-Walled
+    #Structures 154, 106897).  The shear center offsets xof, yof of the free flange couple its axial force to
+    #bending and twist; ThinWalledBeamColumn omitted these terms.  The springs act at (hxf, hyf) from the
+    #free flange centroid.
+    roof_hugger_purlin_line.free_flange_model = PlautBeamColumnElement.solve(z, Af, Ixf, Iyf, Iof, Jf, Cwf, E, G, axf, ayf, kxf, kyf, kϕf, hxf, hyf, qxf, qyf, Pf, end_boundary_conditions, supports; xo = xof, yo = yof)
 
     #Calculate internal forces in the free flange.
     Mxxf, Myyf, Vxxf, Vyyf, Tf, Bf = PurlinLine.calculate_internal_forces(z, roof_hugger_purlin_line.free_flange_model.outputs.u, roof_hugger_purlin_line.free_flange_model.outputs.v, roof_hugger_purlin_line.free_flange_model.outputs.ϕ, E, G, Ixf, Iyf, Jf, Cwf)
 
     #Add free flange internal forces to data structure.
-    roof_hugger_purlin_line.free_flange_internal_forces = PurlinLine.InternalForceData(Pf, Mxx, Myy, Vxx, Vyy, T, B)
+    roof_hugger_purlin_line.free_flange_internal_forces = PurlinLine.InternalForceData(Pf, Mxxf, Myyf, Vxxf, Vyyf, Tf, Bf)
 
     #Calculate demand-to-capacity ratios for each of the purlin line limit states.
     roof_hugger_purlin_line.flexure_torsion_demand_to_capacity, eMnℓ_xx_all, eMnℓ_yy_all, eBn_all, eMnℓ_yy_free_flange_all = PurlinLine.calculate_flexure_torsion_demand_to_capacity(roof_hugger_purlin_line)
