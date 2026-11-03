@@ -1,6 +1,6 @@
 name = "RoofHugger"
 uuid = "81b2e6b6-b7f4-4910-9a11-8266460f9833"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["Cris Moen <cris.moen@runtosolve.com>"]
 
 [deps]
@@ -22,5 +22,5 @@ SectionProperties = "03320fb2-42b0-43fd-9b66-b95dbaa39193"
 ThinWalledBeam = "1c93ddf5-a21f-4e01-8bde-98213f7f7d54"
 
 [compat]
-PlautBeamColumnElement = "0.2"
-PurlinLine = "0.3.0"
+PlautBeamColumnElement = "0.2, 0.3"
+PurlinLine = "0.3.1"
