@@ -1,0 +1,52 @@
+name = "RoofHuggerAPI"
+uuid = "41c0ce8b-7965-41b0-a50a-36415bef3a77"
+version = "0.1.0"
+
+[deps]
+CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
+RoofHugger = "81b2e6b6-b7f4-4910-9a11-8266460f9833"
+JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
+PurlinLine = "720b0b74-7d22-47cf-9c9b-19f6078eb386"
+StructTypes = "856f2bd8-1eba-4b0a-8007-ebc267875bd4"
+ThinWalledBeam = "1c93ddf5-a21f-4e01-8bde-98213f7f7d54"
+ThinWalledBeamColumn = "79be238d-76c4-453b-a7f7-71368c01feb5"
+PlautBeamColumnElement = "a45b55a3-f080-4392-acba-796e05a72a03"
+PlautBeamElement = "1ae087d9-73e4-4680-9675-1d6b63e7ecef"
+AISIS100 = "01f7396e-a581-4110-84fa-e8964400bef8"
+CUFSM = "82b4978f-06ae-48e0-88e8-a26b4f7a0fa1"
+CUFSMModalGeometry = "82fbcf34-b322-4c20-ba17-babb40f2cc8c"
+CrossSectionGeometry = "e5713cf4-1a83-4860-95bf-b82253e75fb4"
+FornbergFiniteDiff = "bc6155a8-87c8-416d-b52d-44cfacf6a7f1"
+InternalForces = "0ac833a1-d586-4577-9e6b-83a7c69b6692"
+LinesCurvesNodes = "74a74c3a-221d-4cd1-a4eb-c3c8149e7592"
+ScrewConnections = "5bf228db-695e-4268-9ee9-a0e568bd4ab1"
+SectionProperties = "03320fb2-42b0-43fd-9b66-b95dbaa39193"
+BucklingModeIdentification = "9d4c2b7e-5a31-4f8c-b6e2-7c0d1a3f5e91"
+cFSM = "f62c156c-76c5-4505-9990-675440343290"
+UUIDs = "cf7118a7-6976-5b1a-9a39-7adc72f591a4"
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+
+[sources]
+AISIS100 = {rev = "main", url = "https://github.com/runtosolve/AISIS100.jl.git"}
+BucklingModeIdentification = {rev = "main", url = "https://github.com/runtosolve/BucklingModeIdentification.jl.git"}
+CUFSMModalGeometry = {rev = "main", url = "https://github.com/runtosolve/CUFSMModalGeometry.jl.git"}
+CrossSectionGeometry = {rev = "main", url = "https://github.com/runtosolve/CrossSectionGeometry.jl.git"}
+FornbergFiniteDiff = {rev = "main", url = "https://github.com/runtosolve/FornbergFiniteDiff.jl.git"}
+RoofHugger = {path = ".."}
+InternalForces = {rev = "main", url = "https://github.com/runtosolve/InternalForces.jl.git"}
+LinesCurvesNodes = {rev = "main", url = "https://github.com/runtosolve/LinesCurvesNodes.jl.git"}
+# Pinned to the releases PurlinLine 0.3.1 and RoofHugger support (PlautBeamColumnElement 0.3.0, PlautBeamElement
+# 0.4.0); main has moved on to 0.4.0 / 0.5.0 (moment-coupling geometric terms), which PurlinLine does not allow yet.
+PlautBeamColumnElement = {rev = "934266284178b6dcc4450f87f7e47d089eed5233", url = "https://github.com/runtosolve/PlautBeamColumnElement.jl.git"}
+PlautBeamElement = {rev = "b4280fe3efd1fb2b8954d634f825678b155793dd", url = "https://github.com/runtosolve/PlautBeamElement.jl.git"}
+PurlinLine = {path = "../../PurlinLine"}
+ScrewConnections = {rev = "main", url = "https://github.com/runtosolve/ScrewConnections.jl.git"}
+SectionProperties = {rev = "main", url = "https://github.com/runtosolve/SectionProperties.jl.git"}
+ThinWalledBeam = {rev = "main", url = "https://github.com/runtosolve/ThinWalledBeam.jl.git"}
+ThinWalledBeamColumn = {rev = "main", url = "https://github.com/runtosolve/ThinWalledBeamColumn.jl.git"}
+cFSM = {rev = "main", url = "https://github.com/runtosolve/cFSM.jl.git"}
