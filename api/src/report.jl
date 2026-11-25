@@ -1,0 +1,176 @@
+# PDF report export: the client report (generate_report/Report.typ) or the detailed report
+# (generate_report/Report_detailed.typ) of RoofHugger.jl, built from one request body.
+#
+# Each request gets its own temporary work folder laid out like the RoofHugger.jl repository, so the
+# templates' relative paths resolve unchanged:
+#
+#   <work>/frontend_output/inputs.json            request body + project block (the report reads it)
+#   <work>/generate_report/Report.typ             template copied from the package
+#   <work>/generate_report/Report_detailed.typ
+#   <work>/generate_report/figures/RoofHugger_Logo.png
+#
+# RoofHugger_cFSM.run_all_calculations writes the JSON results and figures next to the templates, and
+# RoofHugger_cFSM.export_pdf compiles them with the Typst CLI (`typst` on PATH) using --root <work>.
+
+# The report pipeline lives in RoofHugger.jl/src but is not part of the RoofHugger package module.
+include(joinpath(pkgdir(RoofHugger), "src", "RoofHugger_cFSM.jl"))
+
+const REPORT_SOURCE_DIR = joinpath(pkgdir(RoofHugger), "generate_report")
+const REPORT_TEMPLATES = ("Report.typ", "Report_detailed.typ")
+const REPORT_LOGO = joinpath("figures", "RoofHugger_Logo.png")
+
+# Keys of the request body the analysis needs (the /roofhugger/base fields).
+const REPORT_REQUIRED_KEYS = ("purlin_types", "purlin_spans", "purlin_size_span_assignment", "purlin_laps",
+                              "purlin_spacing", "frame_flange_width", "roof_slope", "deck_type",
+                              "roof_hugger_type", "purlin_frame_connection")
+
+# Project block shown in the report header; blank or missing values print as an em dash.
+const REPORT_PROJECT_KEYS = ("project_name", "project_location", "project_reference", "client_name")
+
+# One report at a time: the pipeline is CPU-bound and CairoMakie is not meant to be driven from
+# several tasks at once. Concurrent requests queue here.
+const REPORT_LOCK = ReentrantLock()
+
+# The computed results of a report (the JSON files and figures run_all_calculations writes) are kept per set of
+# analysis inputs, so another report on the same roof -- the detailed one after the summary, a new project name or
+# date, a second click -- only recompiles the Typst templates. The REPORT_CACHE_SIZE most recently used result sets
+# are kept, in a temporary folder of this process (removed at exit, so results never outlive the code that made them).
+const REPORT_RESULTS = (cfsm_local_buckling = "cfsm_local_buckling.json", capacity = "capacity_results.json",
+                        cfsm_figures = joinpath("figures", "cfsm"), capacity_figures = joinpath("figures", "capacity"))
+const REPORT_CACHE_SIZE = 50
+const REPORT_CACHE_DIR = Ref("")
+const LAST_USED = "last_used"
+
+report_cache_root() = isdir(REPORT_CACHE_DIR[]) ? REPORT_CACHE_DIR[] : (REPORT_CACHE_DIR[] = mktempdir())
+last_used(entry) = (f = joinpath(entry, LAST_USED); isfile(f) ? mtime(f) : 0.0)
+
+"""
+Cache key of the analysis inputs of a report (everything except the project block, date and time).
+Numbers are compared as Float64, so 16 and 16.0 (as a JavaScript client may send them) are the same roof.
+"""
+report_cache_key(inputs) = string(hash(JSON3.write([_number(inputs[k]) for k in (REPORT_REQUIRED_KEYS..., "loading_direction")])); base = 16)
+
+_number(x::Real) = Float64(x)
+_number(x::AbstractVector) = map(_number, x)
+_number(x) = x
+
+copy_results(from, to) = foreach(p -> cp(joinpath(from, p), joinpath(to, p); force = true), REPORT_RESULTS)
+
+"Stores the results in `output_dir` under `key` and drops the oldest result sets beyond `REPORT_CACHE_SIZE`."
+function cache_results(key, output_dir)
+    root = report_cache_root()
+    staging = mktempdir(root)   # copied in full first, so an interrupted copy never looks like a cached result
+    mkpath(joinpath(staging, "figures"))
+    copy_results(output_dir, staging)
+    touch(joinpath(staging, LAST_USED))
+    mv(staging, joinpath(root, key); force = true)
+    entries = sort(filter(isdir, readdir(root; join = true)); by = last_used, rev = true)
+    foreach(p -> rm(p; recursive = true, force = true), entries[(REPORT_CACHE_SIZE + 1):end])
+    return nothing
+end
+
+_text(x) = (s = x === nothing ? "" : strip(string(x)); isempty(s) ? "—" : s)
+
+"""
+    report_inputs(body) -> Dict{String,Any}
+
+The `inputs.json` the report templates read: the analysis fields of `body` plus the project block.
+`report_type`, `analysis_type` and `generate_report` are request options, not report inputs.
+"""
+function report_inputs(body::AbstractDict)
+    missing_keys = [k for k in REPORT_REQUIRED_KEYS if !haskey(body, k)]
+    isempty(missing_keys) || throw(ArgumentError("missing field(s): " * join(missing_keys, ", ")))
+    # names the databases do not list would otherwise fail deep in the analysis with an unreadable error
+    known(name, column) = String(name) in String.(column)
+    unknown_purlins = [p for p in body["purlin_types"] if !known(p, DATABASES.purlin_data.section_name)]
+    isempty(unknown_purlins) ||
+        throw(ArgumentError("purlin section(s) not in the Roof Hugger database: " * join(unknown_purlins, ", ")))
+    known(body["roof_hugger_type"], DATABASES.roof_hugger_data.section_name) ||
+        throw(ArgumentError("Roof Hugger section not in the database: $(body["roof_hugger_type"])"))
+    known(body["deck_type"], DATABASES.existing_deck_data.deck_name) ||
+        throw(ArgumentError("deck type not in the database: $(body["deck_type"])"))
+    inputs = Dict{String,Any}(k => body[k] for k in REPORT_REQUIRED_KEYS)
+    inputs["loading_direction"] = get(body, "loading_direction", "gravity")
+    for k in REPORT_PROJECT_KEYS
+        inputs[k] = _text(get(body, k, nothing))
+    end
+    now = Dates.now()
+    inputs["design_report_date"] = _text(get(body, "design_report_date", Dates.format(now, "mm/dd/yyyy")))
+    inputs["time"] = _text(get(body, "time", Dates.format(now, "HH:MM:SS")))
+    inputs["revision_no."] = _text(get(body, "revision_no", get(body, "revision_no.", "0")))
+    return inputs
+end
+
+"Report file name for the download: the project name (or \"RoofHugger_Report\"), plus \"_detailed\"."
+function report_filename(inputs, detailed::Bool)
+    name = inputs["project_name"] == "—" ? "RoofHugger_Report" : inputs["project_name"]
+    name = replace(name, r"[^A-Za-z0-9._ -]" => "_")
+    return name * (detailed ? "_detailed" : "") * ".pdf"
+end
+
+"""
+    export_report(body; detailed = false) -> (pdf::Vector{UInt8}, filename::String)
+
+Runs the full report pipeline (bare-RoofHugger cFSM study, then the existing and retrofit purlin
+lines for gravity and uplift) for the request `body` and returns the compiled PDF bytes. The computed
+results are reused for later requests with the same analysis inputs (see `report_cache_key`).
+"""
+function export_report(body::AbstractDict; detailed::Bool = false)
+    inputs = report_inputs(body)
+    lock(REPORT_LOCK) do
+        mktempdir() do work
+            input_dir = mkpath(joinpath(work, "frontend_output"))
+            output_dir = joinpath(work, "generate_report")
+            mkpath(joinpath(output_dir, "figures"))
+            inputs_path = joinpath(input_dir, "inputs.json")
+            open(io -> JSON3.write(io, inputs), inputs_path, "w")
+            for f in REPORT_TEMPLATES
+                cp(joinpath(REPORT_SOURCE_DIR, f), joinpath(output_dir, f))
+            end
+            cp(joinpath(REPORT_SOURCE_DIR, REPORT_LOGO), joinpath(output_dir, REPORT_LOGO))
+            # files copied out of a read-only package depot keep their read-only mode; the pipeline only reads
+            # them, but mktempdir must be able to delete them afterwards
+            foreach(p -> chmod(p, 0o644), [joinpath(output_dir, f) for f in (REPORT_TEMPLATES..., REPORT_LOGO)])
+
+            key = report_cache_key(inputs)
+            cached = joinpath(report_cache_root(), key)
+            if isdir(cached)
+                copy_results(cached, output_dir)
+                touch(joinpath(cached, LAST_USED))
+            else
+                RoofHugger_cFSM.run_all_calculations(inputs_path, output_dir)
+                try
+                    cache_results(key, output_dir)
+                catch error   # a failed cache write must not fail the report
+                    @warn "Could not cache the report results" exception = (error, catch_backtrace())
+                end
+            end
+            RoofHugger_cFSM.export_pdf(inputs_path, output_dir; root_dir = work)
+            pdf = read(joinpath(output_dir, detailed ? "Report_detailed.pdf" : "Report.pdf"))
+            return pdf, report_filename(inputs, detailed)
+        end
+    end
+end
+
+"Default inputs (the frontend's defaults) for warming the report pipeline at server start."
+const WARMUP_BODY = Dict{String,Any}(
+    "purlin_types" => ["Z8x2.5 060"], "purlin_spans" => [16.0, 20.0], "purlin_size_span_assignment" => [1, 1],
+    "purlin_laps" => [2.0, 2.0], "purlin_spacing" => 5.0, "frame_flange_width" => 6.0, "roof_slope" => 1.0,
+    "deck_type" => "SSR Ultra-Dek 18 in. 24 ga", "roof_hugger_type" => "Model C 4.5 16g",
+    "purlin_frame_connection" => "Clip-mounted", "project_name" => "Warm-up")
+
+"""
+    warmup_report()
+
+Runs one report so the first real request does not pay Julia's compilation time (a cold report takes
+roughly 3 minutes, a warm one a little over 1 minute). Failures are logged, never thrown.
+"""
+function warmup_report()
+    try
+        t = @elapsed export_report(WARMUP_BODY)
+        @info "RoofHugger report pipeline warmed up" seconds = round(t, digits = 1)
+    catch error
+        @error "RoofHugger report warm-up failed" exception = (error, catch_backtrace())
+    end
+    return nothing
+end
